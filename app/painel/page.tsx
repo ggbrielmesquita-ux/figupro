@@ -18,6 +18,7 @@ function PainelConteudo() {
   const [busca, setBusca] = useState('');
   const [loading, setLoading] = useState(false);
   const [modalFigurinha, setModalFigurinha] = useState<Figurinha | null>(null);
+  const [erroApi, setErroApi] = useState<string | null>(null);
 
   const categoriaAtual = categorias.find((c) => c.slug === categoriaSlug);
   const subcategoriaAtual = categoriaAtual?.subcategorias.find((s) => s.slug === subcategoriaSlug);
@@ -29,7 +30,11 @@ function PainelConteudo() {
   useEffect(() => {
     fetch('/api/figurinhas')
       .then((r) => r.json())
-      .then((data) => setCategorias(data.categorias || []));
+      .then((data) => {
+        if (data.error) setErroApi(data.error);
+        setCategorias(data.categorias || []);
+      })
+      .catch((e) => setErroApi(String(e)));
   }, []);
 
   useEffect(() => {
@@ -62,6 +67,13 @@ function PainelConteudo() {
             Selecione uma categoria para ver as figurinhas
           </p>
         </div>
+
+        {/* Erro de conexão */}
+        {erroApi && (
+          <div className="mb-6 bg-red-900/30 border border-red-500/50 rounded-xl p-4 text-red-400 text-sm font-mono break-all">
+            Erro: {erroApi}
+          </div>
+        )}
 
         {/* Grid de categorias */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
