@@ -12,6 +12,6 @@ export async function GET(
   }
 
   const { categoria } = await params;
-  const figurinhas = listarFigurinhas(categoria);
+  const figurinhas = await listarFigurinhas(categoria);
   return NextResponse.json({ figurinhas });
 }

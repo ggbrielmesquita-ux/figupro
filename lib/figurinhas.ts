@@ -1,9 +1,7 @@
-import fs from 'fs';
-import path from 'path';
+import { supabaseAdmin } from '@/lib/supabase';
 import { Categoria, Figurinha, Subcategoria } from '@/types';
 
-const FIGURINHAS_DIR = path.join(process.cwd(), 'figurinhas');
-const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
+const BUCKET = 'figurinhas';
 
 // Mapeamento de categorias para ícones e cores
 const CATEGORIA_CONFIG: Record<string, { icone: string; cor: string }> = {
@@ -25,6 +23,13 @@ const CATEGORIA_CONFIG: Record<string, { icone: string; cor: string }> = {
   'CHOFFER': { icone: 'Navigation', cor: '#14b8a6' },
 };
 
+const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif'];
+
+function isImageFile(name: string): boolean {
+  const ext = name.slice(name.lastIndexOf('.')).toLowerCase();
+  return IMAGE_EXTS.includes(ext);
+}
+
 export function slugify(nome: string): string {
   return nome
     .toLowerCase()
@@ -38,39 +43,46 @@ export function deslugify(slug: string, items: string[]): string | null {
   return items.find((item) => slugify(item) === slug) || null;
 }
 
-function isImageFile(filename: string): boolean {
-  return IMAGE_EXTS.includes(path.extname(filename).toLowerCase());
-}
+export async function listarCategorias(): Promise<Categoria[]> {
+  // Lista as "pastas" no raiz do bucket (prefixos de nível 1)
+  const { data: raiz, error } = await supabaseAdmin.storage.from(BUCKET).list('', { limit: 200 });
+  if (error || !raiz) return [];
 
-export function listarCategorias(): Categoria[] {
-  if (!fs.existsSync(FIGURINHAS_DIR)) return [];
-
-  const entries = fs.readdirSync(FIGURINHAS_DIR, { withFileTypes: true });
   const categorias: Categoria[] = [];
 
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
+  for (const entry of raiz) {
+    // Entradas sem id são pastas (prefixos)
+    if (entry.id !== null) continue;
 
     const nomeCategoria = entry.name;
-    const catPath = path.join(FIGURINHAS_DIR, nomeCategoria);
     const config = CATEGORIA_CONFIG[nomeCategoria] || CATEGORIA_CONFIG.default;
 
-    const subEntries = fs.readdirSync(catPath, { withFileTypes: true });
+    // Lista conteúdo da categoria para descobrir subcategorias e arquivos diretos
+    const { data: conteudo } = await supabaseAdmin.storage
+      .from(BUCKET)
+      .list(nomeCategoria, { limit: 500 });
+
     const subcategorias: Subcategoria[] = [];
     let totalFigurinhas = 0;
 
-    for (const sub of subEntries) {
-      if (sub.isDirectory()) {
-        const subPath = path.join(catPath, sub.name);
-        const subFiles = fs.readdirSync(subPath).filter(isImageFile);
-        subcategorias.push({
-          nome: sub.name,
-          slug: slugify(sub.name),
-          totalFigurinhas: subFiles.length,
-        });
-        totalFigurinhas += subFiles.length;
-      } else if (isImageFile(sub.name)) {
-        totalFigurinhas++;
+    if (conteudo) {
+      for (const item of conteudo) {
+        if (item.id === null) {
+          // É uma subcategoria (pasta)
+          const { data: subFiles } = await supabaseAdmin.storage
+            .from(BUCKET)
+            .list(`${nomeCategoria}/${item.name}`, { limit: 1000 });
+
+          const total = subFiles?.filter((f) => f.id !== null && isImageFile(f.name)).length ?? 0;
+          subcategorias.push({
+            nome: item.name,
+            slug: slugify(item.name),
+            totalFigurinhas: total,
+          });
+          totalFigurinhas += total;
+        } else if (isImageFile(item.name)) {
+          totalFigurinhas++;
+        }
       }
     }
 
@@ -87,38 +99,38 @@ export function listarCategorias(): Categoria[] {
   return categorias.sort((a, b) => a.nome.localeCompare(b.nome));
 }
 
-export function listarFigurinhas(categoria: string, subcategoria?: string): Figurinha[] {
-  const categorias = listarCategorias();
+export async function listarFigurinhas(categoria: string, subcategoria?: string): Promise<Figurinha[]> {
+  const categorias = await listarCategorias();
   const cat = categorias.find((c) => c.slug === categoria);
   if (!cat) return [];
 
-  let dirPath = path.join(FIGURINHAS_DIR, cat.nome);
+  let storagePath = cat.nome;
 
   if (subcategoria) {
     const sub = cat.subcategorias.find((s) => s.slug === subcategoria);
     if (!sub) return [];
-    dirPath = path.join(dirPath, sub.nome);
+    storagePath = `${cat.nome}/${sub.nome}`;
   }
 
-  if (!fs.existsSync(dirPath)) return [];
+  const { data: files, error } = await supabaseAdmin.storage
+    .from(BUCKET)
+    .list(storagePath, { limit: 1000 });
 
-  const files = fs.readdirSync(dirPath).filter(isImageFile);
+  if (error || !files) return [];
 
-  return files.map((file) => ({
-    nome: file,
-    url: subcategoria
-      ? `/api/imagem/${encodeURIComponent(cat.nome)}/${encodeURIComponent(
-          cat.subcategorias.find((s) => s.slug === subcategoria)!.nome
-        )}/${encodeURIComponent(file)}`
-      : `/api/imagem/${encodeURIComponent(cat.nome)}/${encodeURIComponent(file)}`,
-    tipo: path.extname(file).replace('.', ''),
-  }));
-}
+  return files
+    .filter((f) => f.id !== null && isImageFile(f.name))
+    .map((f) => {
+      const urlPath = subcategoria
+        ? `/api/imagem/${encodeURIComponent(cat.nome)}/${encodeURIComponent(
+            cat.subcategorias.find((s) => s.slug === subcategoria)!.nome
+          )}/${encodeURIComponent(f.name)}`
+        : `/api/imagem/${encodeURIComponent(cat.nome)}/${encodeURIComponent(f.name)}`;
 
-export function getImagePath(segments: string[]): string | null {
-  const fullPath = path.join(FIGURINHAS_DIR, ...segments.map(decodeURIComponent));
-  if (!fs.existsSync(fullPath)) return null;
-  const ext = path.extname(fullPath).toLowerCase();
-  if (!IMAGE_EXTS.includes(ext)) return null;
-  return fullPath;
+      return {
+        nome: f.name,
+        url: urlPath,
+        tipo: f.name.slice(f.name.lastIndexOf('.') + 1),
+      };
+    });
 }

@@ -8,6 +8,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
   }
 
-  const categorias = listarCategorias();
+  const categorias = await listarCategorias();
   return NextResponse.json({ categorias });
 }
