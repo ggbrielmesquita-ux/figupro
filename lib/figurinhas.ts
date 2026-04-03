@@ -43,60 +43,82 @@ export function deslugify(slug: string, items: string[]): string | null {
   return items.find((item) => slugify(item) === slug) || null;
 }
 
+let cachedCategorias: Categoria[] | null = null;
+let cacheExpiry: number = 0;
+
 export async function listarCategorias(): Promise<Categoria[]> {
+  if (cachedCategorias && Date.now() < cacheExpiry) {
+    return cachedCategorias;
+  }
+
   // Lista as "pastas" no raiz do bucket (prefixos de nível 1)
   const { data: raiz, error } = await supabaseAdmin.storage.from(BUCKET).list('', { limit: 200 });
   if (error || !raiz) return [];
 
-  const categorias: Categoria[] = [];
+  const promises = raiz
+    .filter((entry) => entry.id === null) // Pega apenas subpastas
+    .map(async (entry) => {
+      const nomeCategoria = entry.name;
+      const config = CATEGORIA_CONFIG[nomeCategoria] || CATEGORIA_CONFIG.default;
 
-  for (const entry of raiz) {
-    // Entradas sem id são pastas (prefixos)
-    if (entry.id !== null) continue;
+      // Lista conteúdo da categoria para descobrir subcategorias e arquivos diretos
+      const { data: conteudo } = await supabaseAdmin.storage
+        .from(BUCKET)
+        .list(nomeCategoria, { limit: 500 });
 
-    const nomeCategoria = entry.name;
-    const config = CATEGORIA_CONFIG[nomeCategoria] || CATEGORIA_CONFIG.default;
+      const subcategorias: Subcategoria[] = [];
+      let totalFigurinhas = 0;
 
-    // Lista conteúdo da categoria para descobrir subcategorias e arquivos diretos
-    const { data: conteudo } = await supabaseAdmin.storage
-      .from(BUCKET)
-      .list(nomeCategoria, { limit: 500 });
+      if (conteudo) {
+        const subPromises = conteudo.map(async (item) => {
+          if (item.id === null) {
+            // É uma subcategoria (pasta)
+            const { data: subFiles } = await supabaseAdmin.storage
+              .from(BUCKET)
+              .list(`${nomeCategoria}/${item.name}`, { limit: 1000 });
 
-    const subcategorias: Subcategoria[] = [];
-    let totalFigurinhas = 0;
+            const total = subFiles?.filter((f) => f.id !== null && isImageFile(f.name)).length ?? 0;
+            return { isSub: true, item, total };
+          } else if (isImageFile(item.name)) {
+            return { isSub: false, item, total: 1 };
+          }
+          return null;
+        });
 
-    if (conteudo) {
-      for (const item of conteudo) {
-        if (item.id === null) {
-          // É uma subcategoria (pasta)
-          const { data: subFiles } = await supabaseAdmin.storage
-            .from(BUCKET)
-            .list(`${nomeCategoria}/${item.name}`, { limit: 1000 });
-
-          const total = subFiles?.filter((f) => f.id !== null && isImageFile(f.name)).length ?? 0;
-          subcategorias.push({
-            nome: item.name,
-            slug: slugify(item.name),
-            totalFigurinhas: total,
-          });
-          totalFigurinhas += total;
-        } else if (isImageFile(item.name)) {
-          totalFigurinhas++;
+        const subResults = await Promise.all(subPromises);
+        
+        for (const res of subResults) {
+          if (!res) continue;
+          if (res.isSub) {
+            subcategorias.push({
+              nome: res.item.name,
+              slug: slugify(res.item.name),
+              totalFigurinhas: res.total,
+            });
+            totalFigurinhas += res.total;
+          } else {
+            totalFigurinhas++;
+          }
         }
       }
-    }
 
-    categorias.push({
-      nome: nomeCategoria,
-      slug: slugify(nomeCategoria),
-      icone: config.icone,
-      cor: config.cor,
-      subcategorias,
-      totalFigurinhas,
+      return {
+        nome: nomeCategoria,
+        slug: slugify(nomeCategoria),
+        icone: config.icone,
+        cor: config.cor,
+        subcategorias,
+        totalFigurinhas,
+      };
     });
-  }
 
-  return categorias.sort((a, b) => a.nome.localeCompare(b.nome));
+  const categorias = await Promise.all(promises);
+  categorias.sort((a, b) => a.nome.localeCompare(b.nome));
+
+  cachedCategorias = categorias;
+  cacheExpiry = Date.now() + 1000 * 60 * 15; // 15 minutos em cache
+
+  return categorias;
 }
 
 export async function listarFigurinhas(categoria: string, subcategoria?: string): Promise<Figurinha[]> {
