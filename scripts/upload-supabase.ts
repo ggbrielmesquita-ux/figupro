@@ -69,7 +69,18 @@ async function main() {
 
   for (let i = 0; i < imageFiles.length; i++) {
     const filePath = imageFiles[i];
-    const relativePath = path.relative(FIGURINHAS_DIR, filePath).replace(/\\/g, '/');
+    const rawPath = path.relative(FIGURINHAS_DIR, filePath).replace(/\\/g, '/');
+    // Normaliza cada segmento do path: remove acentos e caracteres inválidos
+    const relativePath = rawPath
+      .split('/')
+      .map((seg) =>
+        seg
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/%/g, '')
+          .trim()
+      )
+      .join('/');
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext];
     const fileBuffer = fs.readFileSync(filePath);

@@ -10,7 +10,7 @@ const CATEGORIA_CONFIG: Record<string, { icone: string; cor: string }> = {
   'BOM DIA': { icone: 'Sun', cor: '#fbbf24' },
   'BOA TARDE': { icone: 'Sunset', cor: '#f97316' },
   'BOA NOITE': { icone: 'Moon', cor: '#8b5cf6' },
-  'REAÇÕES': { icone: 'Smile', cor: '#10b981' },
+  'REACOES': { icone: 'Smile', cor: '#10b981' },
   'GRAU': { icone: 'Bike', cor: '#ef4444' },
   'CARRO': { icone: 'Car', cor: '#3b82f6' },
   'INTERATIVAS': { icone: 'Zap', cor: '#f59e0b' },
