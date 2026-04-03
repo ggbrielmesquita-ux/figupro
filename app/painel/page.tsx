@@ -29,8 +29,13 @@ function PainelConteudo() {
 
   useEffect(() => {
     fetch('/api/figurinhas')
-      .then((r) => r.json())
-      .then((data) => {
+      .then(async (r) => {
+        const text = await r.text();
+        if (!r.ok || text.startsWith('<')) {
+          setErroApi(`HTTP ${r.status} — resposta: ${text.slice(0, 200)}`);
+          return;
+        }
+        const data = JSON.parse(text);
         if (data.error) setErroApi(data.error);
         setCategorias(data.categorias || []);
       })
