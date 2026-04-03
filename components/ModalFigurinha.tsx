@@ -103,11 +103,11 @@ export default function ModalFigurinha({ figurinha, onFechar }: ModalFigurinhaPr
       onClick={onFechar}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-black/85 backdrop-blur-md pointer-events-none" />
 
       {/* Modal */}
       <div
-        className="relative bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl overflow-hidden max-w-lg w-full max-h-[90vh] flex flex-col shadow-[0_24px_80px_rgba(0,0,0,0.7)] animate-scale-in"
+        className="relative z-10 bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl overflow-hidden max-w-lg w-full max-h-[90vh] flex flex-col shadow-[0_24px_80px_rgba(0,0,0,0.7)] animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

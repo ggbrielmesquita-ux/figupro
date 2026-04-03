@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { Search, Download, Eye, ChevronRight, ArrowLeft, Folder, ImageIcon } from 'lucide-react';
 import { Categoria, Figurinha, Subcategoria } from '@/types';
@@ -9,6 +9,7 @@ import ModalFigurinha from '@/components/ModalFigurinha';
 import CardFigurinha from '@/components/CardFigurinha';
 
 function PainelConteudo() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const categoriaSlug = searchParams.get('categoria');
   const subcategoriaSlug = searchParams.get('sub');
@@ -83,9 +84,9 @@ function PainelConteudo() {
         {/* Grid de categorias */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {categorias.map((cat) => (
-            <a
+            <div
               key={cat.slug}
-              href={`/painel?categoria=${cat.slug}`}
+              onClick={() => router.push(`/painel?categoria=${cat.slug}`)}
               className="group bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-2xl p-5 flex flex-col items-center gap-3 transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,107,0,0.15)] hover:-translate-y-0.5 cursor-pointer"
             >
               <div
@@ -100,7 +101,7 @@ function PainelConteudo() {
                 </p>
                 <p className="text-[#606060] text-xs mt-1">{cat.totalFigurinhas} figurinhas</p>
               </div>
-            </a>
+            </div>
           ))}
         </div>
       </div>
@@ -114,20 +115,20 @@ function PainelConteudo() {
         <div className="flex items-center gap-2 min-w-0">
           {/* Breadcrumb e voltar */}
           <div className="flex items-center gap-1.5 text-sm flex-wrap">
-            <a href="/painel" className="text-[#606060] hover:text-[#ff6b00] transition-colors">
+            <span onClick={() => router.push('/painel')} className="text-[#606060] hover:text-[#ff6b00] transition-colors cursor-pointer">
               Figurinhas
-            </a>
+            </span>
             {categoriaAtual && (
               <>
                 <ChevronRight className="w-3.5 h-3.5 text-[#404040]" />
-                <a
-                  href={`/painel?categoria=${categoriaAtual.slug}`}
-                  className={`font-semibold transition-colors ${
+                <span
+                  onClick={() => router.push(`/painel?categoria=${categoriaAtual.slug}`)}
+                  className={`font-semibold transition-colors cursor-pointer ${
                     subcategoriaAtual ? 'text-[#606060] hover:text-[#ff6b00]' : 'text-white'
                   }`}
                 >
                   {categoriaAtual.nome}
-                </a>
+                </span>
               </>
             )}
             {subcategoriaAtual && (
@@ -142,13 +143,13 @@ function PainelConteudo() {
         <div className="flex items-center gap-3 sm:ml-auto">
           {/* Botão voltar */}
           {subcategoriaAtual && (
-            <a
-              href={`/painel?categoria=${categoriaSlug}`}
-              className="flex items-center gap-1.5 text-sm text-[#a0a0a0] hover:text-white border border-[#2a2a2a] hover:border-[#3a3a3a] rounded-lg px-3 py-2 transition-all"
+            <span
+              onClick={() => router.push(`/painel?categoria=${categoriaSlug}`)}
+              className="flex items-center gap-1.5 text-sm text-[#a0a0a0] hover:text-white border border-[#2a2a2a] hover:border-[#3a3a3a] rounded-lg px-3 py-2 transition-all cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               Voltar
-            </a>
+            </span>
           )}
 
           {/* Busca */}
@@ -173,15 +174,15 @@ function PainelConteudo() {
           </p>
           <div className="flex flex-wrap gap-2">
             {categoriaAtual.subcategorias.map((sub) => (
-              <a
+              <div
                 key={sub.slug}
-                href={`/painel?categoria=${categoriaSlug}&sub=${sub.slug}`}
-                className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-xl px-4 py-2.5 text-sm font-medium text-[#a0a0a0] hover:text-white transition-all hover:shadow-[0_0_12px_rgba(255,107,0,0.1)]"
+                onClick={() => router.push(`/painel?categoria=${categoriaSlug}&sub=${sub.slug}`)}
+                className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-xl px-4 py-2.5 text-sm font-medium text-[#a0a0a0] hover:text-white transition-all hover:shadow-[0_0_12px_rgba(255,107,0,0.1)] cursor-pointer"
               >
                 <Folder className="w-4 h-4 text-[#ff6b00]" />
                 {sub.nome}
                 <span className="text-[#404040] text-xs">({sub.totalFigurinhas})</span>
-              </a>
+              </div>
             ))}
           </div>
         </div>
