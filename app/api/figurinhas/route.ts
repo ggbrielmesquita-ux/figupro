@@ -8,6 +8,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
   }
 
-  const categorias = await listarCategorias();
-  return NextResponse.json({ categorias });
+  try {
+    const categorias = await listarCategorias();
+    return NextResponse.json({ categorias });
+  } catch (err) {
+    console.error('[/api/figurinhas] Erro:', err);
+    return NextResponse.json({ error: String(err), categorias: [] }, { status: 500 });
+  }
 }
