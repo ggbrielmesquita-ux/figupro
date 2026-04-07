@@ -10,7 +10,7 @@ const CATEGORIA_CONFIG: Record<string, { icone: string; cor: string }> = {
   'BOM DIA': { icone: 'Sun', cor: '#fbbf24' },
   'BOA TARDE': { icone: 'Sunset', cor: '#f97316' },
   'BOA NOITE': { icone: 'Moon', cor: '#8b5cf6' },
-  'REACOES': { icone: 'Smile', cor: '#10b981' },
+  'REAÇÕES': { icone: 'Smile', cor: '#10b981' },
   'GRAU': { icone: 'Bike', cor: '#ef4444' },
   'CARRO': { icone: 'Car', cor: '#3b82f6' },
   'INTERATIVAS': { icone: 'Zap', cor: '#f59e0b' },
@@ -61,23 +61,41 @@ export async function listarCategorias(): Promise<Categoria[]> {
       const nomeCategoria = entry.name;
       const config = CATEGORIA_CONFIG[nomeCategoria] || CATEGORIA_CONFIG.default;
 
-      // Lista conteúdo da categoria para descobrir subcategorias e arquivos diretos
-      const { data: conteudo } = await supabaseAdmin.storage
-        .from(BUCKET)
-        .list(nomeCategoria, { limit: 500 });
+      // Fetch all content of the category with pagination to support >500 items
+      let allConteudo: any[] = [];
+      let catOffset = 0;
+      const catPageSize = 2500; // Increased page size
+      while (true) {
+        const { data: page } = await supabaseAdmin.storage
+          .from(BUCKET)
+          .list(nomeCategoria, { limit: catPageSize, offset: catOffset });
+        if (!page || page.length === 0) break;
+        allConteudo.push(...page);
+        if (page.length < catPageSize) break;
+        catOffset += catPageSize;
+      }
 
       const subcategorias: Subcategoria[] = [];
       let totalFigurinhas = 0;
 
-      if (conteudo) {
-        const subPromises = conteudo.map(async (item) => {
+      if (allConteudo.length > 0) {
+        const subPromises = allConteudo.map(async (item) => {
           if (item.id === null) {
-            // É uma subcategoria (pasta)
-            const { data: subFiles } = await supabaseAdmin.storage
-              .from(BUCKET)
-              .list(`${nomeCategoria}/${item.name}`, { limit: 1000 });
+            // Fetch all content of the subcategory with pagination
+            let allSubFiles: any[] = [];
+            let subOffset = 0;
+            const subPageSize = 2500;
+            while (true) {
+              const { data: page } = await supabaseAdmin.storage
+                .from(BUCKET)
+                .list(`${nomeCategoria}/${item.name}`, { limit: subPageSize, offset: subOffset });
+              if (!page || page.length === 0) break;
+              allSubFiles.push(...page);
+              if (page.length < subPageSize) break;
+              subOffset += subPageSize;
+            }
 
-            const total = subFiles?.filter((f) => f.id !== null && isImageFile(f.name)).length ?? 0;
+            const total = allSubFiles.filter((f) => f.id !== null && isImageFile(f.name)).length;
             return { isSub: true, item, total };
           } else if (isImageFile(item.name)) {
             return { isSub: false, item, total: 1 };
@@ -116,7 +134,7 @@ export async function listarCategorias(): Promise<Categoria[]> {
   categorias.sort((a, b) => a.nome.localeCompare(b.nome));
 
   cachedCategorias = categorias;
-  cacheExpiry = Date.now() + 1000 * 60 * 15; // 15 minutos em cache
+  cacheExpiry = Date.now() + 1000 * 60 * 1; // reduced to 1 minute
 
   return categorias;
 }
@@ -134,24 +152,35 @@ export async function listarFigurinhas(categoria: string, subcategoria?: string)
     storagePath = `${cat.nome}/${sub.nome}`;
   }
 
-  const { data: files, error } = await supabaseAdmin.storage
-    .from(BUCKET)
-    .list(storagePath, { limit: 1000 });
+  // Fetch all items by concatenating pages using offset
+  let allFiles: any[] = [];
+  let currentOffset = 0;
+  const pageSize = 1000;
+  
+  while (true) {
+    const { data: files, error } = await supabaseAdmin.storage
+      .from(BUCKET)
+      .list(storagePath, { limit: pageSize, offset: currentOffset });
 
-  if (error || !files) return [];
+    if (error || !files || files.length === 0) break;
+    
+    allFiles.push(...files);
+    if (files.length < pageSize) break;
+    currentOffset += pageSize;
+  }
 
-  return files
+  return allFiles
     .filter((f) => f.id !== null && isImageFile(f.name))
     .map((f) => {
-      const urlPath = subcategoria
-        ? `/api/imagem/${encodeURIComponent(cat.nome)}/${encodeURIComponent(
-            cat.subcategorias.find((s) => s.slug === subcategoria)!.nome
-          )}/${encodeURIComponent(f.name)}`
-        : `/api/imagem/${encodeURIComponent(cat.nome)}/${encodeURIComponent(f.name)}`;
+      const filePath = subcategoria
+        ? `${cat.nome}/${cat.subcategorias.find((s) => s.slug === subcategoria)!.nome}/${f.name}`
+        : `${cat.nome}/${f.name}`;
+
+      const publicUrl = supabaseAdmin.storage.from(BUCKET).getPublicUrl(filePath).data.publicUrl;
 
       return {
         nome: f.name,
-        url: urlPath,
+        url: publicUrl,
         tipo: f.name.slice(f.name.lastIndexOf('.') + 1),
       };
     });

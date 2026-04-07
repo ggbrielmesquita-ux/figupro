@@ -36,42 +36,83 @@ export default function ModalFigurinha({ figurinha, onFechar }: ModalFigurinhaPr
     setErroClipboard(false);
 
     try {
-      const response = await fetch(figurinha.url);
-      const blob = await response.blob();
+      const getBlobPromise = async () => {
+        const response = await fetch(figurinha.url);
+        const blob = await response.blob();
 
-      // Tenta copiar como image/png (necessário para clipboard)
-      let blobParaCopiar = blob;
-      if (blob.type !== 'image/png') {
-        // Converte para PNG via canvas
-        const img = new window.Image();
-        const objectUrl = URL.createObjectURL(blob);
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
+        if (blob.type === 'image/png') {
+          return blob;
+        }
+
+        return new Promise<Blob>((resolve, reject) => {
+          const img = new window.Image();
+          const objectUrl = URL.createObjectURL(blob);
+          
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d')!;
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(objectUrl);
+            
+            canvas.toBlob((b) => {
+              if (b) resolve(b);
+              else reject(new Error('Erro na conversão para PNG'));
+            }, 'image/png');
+          };
+          
           img.onerror = reject;
           img.src = objectUrl;
         });
+      };
 
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d')!;
-        ctx.drawImage(img, 0, 0);
-        URL.revokeObjectURL(objectUrl);
+      // Compatibilidade Mobile Safari (iOS) requer que o ClipboardItem seja instanciado com a Promise
+      const clipboardItem = new ClipboardItem({
+        'image/png': getBlobPromise() as any, // Cast to any to bypass TS DOM limination
+      });
 
-        blobParaCopiar = await new Promise<Blob>((resolve) =>
-          canvas.toBlob((b) => resolve(b!), 'image/png')
-        );
-      }
-
-      await navigator.clipboard.write([
-        new ClipboardItem({ 'image/png': blobParaCopiar }),
-      ]);
+      await navigator.clipboard.write([clipboardItem]);
 
       setCopiado(true);
       setTimeout(() => setCopiado(false), 3000);
     } catch (err) {
       console.error('Erro ao copiar:', err);
-      setErroClipboard(true);
+      // Fallback para navigator.clipboard caso falhe o write com promise (no Desktop Firefox / webviews antigos)
+      try {
+        const response = await fetch(figurinha.url);
+        const blob = await response.blob();
+        let finalBlob = blob;
+        
+        if (blob.type !== 'image/png') {
+          finalBlob = await new Promise<Blob>((resolve, reject) => {
+            const img = new window.Image();
+            const objectUrl = URL.createObjectURL(blob);
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.naturalWidth;
+              canvas.height = img.naturalHeight;
+              const ctx = canvas.getContext('2d')!;
+              ctx.drawImage(img, 0, 0);
+              URL.revokeObjectURL(objectUrl);
+              canvas.toBlob((b) => {
+                if (b) resolve(b);
+                else reject(new Error('Canvas toBlob failed'));
+              }, 'image/png');
+            };
+            img.onerror = reject;
+            img.src = objectUrl;
+          });
+        }
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': finalBlob })
+        ]);
+        setCopiado(true);
+        setTimeout(() => setCopiado(false), 3000);
+      } catch (fallbackErr) {
+        console.error('Erro fallback ao copiar:', fallbackErr);
+        setErroClipboard(true);
+      }
     } finally {
       setCopiando(false);
     }
@@ -117,10 +158,16 @@ export default function ModalFigurinha({ figurinha, onFechar }: ModalFigurinhaPr
             <span className="text-sm font-bold text-white">Visualizar Figurinha</span>
           </div>
           <button
-            onClick={onFechar}
-            className="p-1.5 rounded-lg text-[#606060] hover:text-white hover:bg-[#2a2a2a] transition-colors"
+            type="button"
+            className="p-2 -mr-1 rounded-xl text-[#606060] hover:text-white hover:bg-[#2a2a2a] transition-colors cursor-pointer relative z-50 flex items-center justify-center active:scale-95"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onFechar();
+            }}
+            aria-label="Fechar"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 pointer-events-none" />
           </button>
         </div>
 
@@ -134,10 +181,7 @@ export default function ModalFigurinha({ figurinha, onFechar }: ModalFigurinhaPr
           />
         </div>
 
-        {/* Nome */}
-        <div className="px-5 pt-4 pb-2">
-          <p className="text-xs text-[#606060] truncate">{figurinha.nome}</p>
-        </div>
+
 
         {/* Dica */}
         <div className="mx-5 mb-4">

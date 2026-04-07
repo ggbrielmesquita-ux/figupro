@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Download, Eye } from 'lucide-react';
 import { Figurinha } from '@/types';
-import Image from 'next/image';
 
 interface CardFigurinhaProps {
   figurinha: Figurinha;
@@ -88,12 +87,7 @@ export default function CardFigurinha({ figurinha, onVisualizar }: CardFigurinha
         </div>
       </div>
 
-      {/* Rodapé do card */}
-      <div className="px-2.5 py-2 border-t border-[#2a2a2a]">
-        <p className="text-[11px] text-[#606060] truncate" title={figurinha.nome}>
-          {figurinha.nome.replace(/\.[^/.]+$/, '')}
-        </p>
-      </div>
+
     </div>
   );
 }

@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
-import { Search, Download, Eye, ChevronRight, ArrowLeft, Folder, ImageIcon } from 'lucide-react';
-import { Categoria, Figurinha, Subcategoria } from '@/types';
+import { Search, ChevronRight, ArrowLeft, Folder } from 'lucide-react';
+import { Categoria, Figurinha } from '@/types';
 import ModalFigurinha from '@/components/ModalFigurinha';
 import CardFigurinha from '@/components/CardFigurinha';
 

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'FiguPro',
   description: 'Figurinhas exclusivas para Instagram. O pack mais completo do Brasil.',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.svg',
   },
 };
 
