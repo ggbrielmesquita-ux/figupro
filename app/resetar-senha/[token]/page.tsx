@@ -60,16 +60,9 @@ export default function ResetarSenhaPage() {
       <div className="relative w-full max-w-md animate-fade-in">
         <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-8 shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
           {/* Logo */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-[#ff6b00] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,107,0,0.4)]">
-                <Zap className="w-6 h-6 text-white" fill="white" />
-              </div>
-            </div>
-            <h1 className="text-2xl font-black">
-              <span className="text-white">Nova</span>
-              <span className="text-[#ff6b00]"> Senha</span>
-            </h1>
+          <div className="text-center mb-8 flex flex-col items-center">
+            <img src="/stikz.png" alt="stikz logo" className="w-20 h-auto object-contain mb-2" />
+            <h1 className="text-2xl font-black text-white">stikz</h1>
           </div>
 
           {sucesso ? (

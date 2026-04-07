@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'FiguPro',
-  description: 'Figurinhas exclusivas para Instagram. O pack mais completo do Brasil.',
+  title: 'stikz',
+  description: 'stikz - Figurinhas exclusivas para Instagram.',
   icons: {
     icon: '/favicon.svg',
   },

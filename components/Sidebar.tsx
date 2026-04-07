@@ -73,15 +73,8 @@ export default function Sidebar({ categorias, aberta, onFechar }: SidebarProps) 
       {/* Logo */}
       <div className="flex items-center justify-between px-5 py-5 border-b border-[#1a1a1a]">
         <Link href="/painel" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-[#ff6b00] rounded-lg flex items-center justify-center shadow-[0_0_12px_rgba(255,107,0,0.4)]">
-            <Zap className="w-5 h-5 text-white" fill="white" />
-          </div>
-          <div>
-            <p className="font-black text-sm leading-none">
-              <span className="text-white">FIGURINHAS</span>
-            </p>
-            <p className="font-black text-sm leading-none text-[#ff6b00]">PRO</p>
-          </div>
+          <img src="/stikz.png" alt="stikz logo" className="w-10 h-auto object-contain" />
+          <h1 className="font-black text-xl tracking-tight text-white mb-0">stikz</h1>
         </Link>
         <button
           onClick={onFechar}

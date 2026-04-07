@@ -20,7 +20,7 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const pergunta = (q) => new Promise((resolve) => rl.question(q, resolve));
 
 async function main() {
-  console.log('\n🔥 FIGURINHAS PRO - Criar Usuário\n');
+  console.log('\n🔥 stikz - Criar Usuário\n');
 
   const email = await pergunta('Email: ');
   const senha = await pergunta('Senha: ');

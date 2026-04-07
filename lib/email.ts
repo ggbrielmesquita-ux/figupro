@@ -15,16 +15,16 @@ export async function enviarEmailRecuperacao(email: string, token: string): Prom
   const link = `${appUrl}/resetar-senha/${token}`;
 
   await transporter.sendMail({
-    from: process.env.EMAIL_FROM || 'FiguPro <noreply@figupro.com>',
+    from: process.env.EMAIL_FROM || 'stikz <noreply@stikz.com>',
     to: email,
-    subject: '🔐 Recuperação de senha - FiguPro',
+    subject: '🔐 Recuperação de senha - stikz',
     html: `
       <!DOCTYPE html>
       <html>
         <head><meta charset="utf-8"></head>
         <body style="background:#0a0a0a; color:#fff; font-family:Arial,sans-serif; padding:40px;">
           <div style="max-width:500px; margin:0 auto; background:#1a1a1a; border-radius:12px; padding:40px; border:1px solid #2a2a2a;">
-            <h1 style="color:#ff6b00; font-size:28px; margin-bottom:8px;">FIGUPRO</h1>
+            <h1 style="color:#ff6b00; font-size:28px; margin-bottom:8px;">stikz</h1>
             <h2 style="color:#fff; font-size:20px; margin-bottom:24px;">Recuperação de Senha</h2>
             <p style="color:#a0a0a0; margin-bottom:32px;">
               Recebemos uma solicitação para redefinir sua senha. Clique no botão abaixo para criar uma nova senha.

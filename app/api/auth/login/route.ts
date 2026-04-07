@@ -4,7 +4,7 @@ import { verificarSenha } from '@/lib/hash';
 import { signJWT } from '@/lib/jwt';
 
 // Credencial de teste — remover antes de ir para produção
-const TESTE_EMAIL = 'teste@figurinhaspro.com';
+const TESTE_EMAIL = 'teste@stikz.com';
 const TESTE_SENHA = 'teste123';
 
 export async function POST(request: NextRequest) {
