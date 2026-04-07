@@ -72,9 +72,8 @@ export default function Sidebar({ categorias, aberta, onFechar }: SidebarProps) 
     >
       {/* Logo */}
       <div className="flex items-center justify-between px-5 py-5 border-b border-[#1a1a1a]">
-        <Link href="/painel" className="flex items-center gap-2.5">
-          <img src="/stikz.png" alt="stikz logo" className="w-10 h-auto object-contain" />
-          <h1 className="font-black text-xl tracking-tight text-white mb-0">stikz</h1>
+        <Link href="/painel" className="flex items-center gap-2.5 mx-auto">
+          <img src="/stikz.png" alt="stikz logo" className="w-28 h-auto object-contain" />
         </Link>
         <button
           onClick={onFechar}

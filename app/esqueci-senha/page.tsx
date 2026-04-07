@@ -45,8 +45,7 @@ export default function EsqueciSenhaPage() {
         <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-8 shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
           {/* Logo */}
           <div className="text-center mb-8 flex flex-col items-center">
-            <img src="/stikz.png" alt="stikz logo" className="w-20 h-auto object-contain mb-2" />
-            <h1 className="text-2xl font-black text-white">stikz</h1>
+            <img src="/stikz.png" alt="stikz logo" className="w-40 h-auto object-contain mb-2" />
             <p className="text-[#606060] text-sm mt-2">
               Enviaremos um link para seu email
             </p>
