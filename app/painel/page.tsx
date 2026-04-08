@@ -33,6 +33,10 @@ function PainelConteudo() {
   );
 
   useEffect(() => {
+    setModalFigurinha(null);
+  }, [categoriaSlug, subcategoriaSlug]);
+
+  useEffect(() => {
     if (!categoriaSlug) {
       setFigurinhas([]);
       setErroFigurinhas(null);
@@ -132,10 +136,11 @@ function PainelConteudo() {
         {!categoriasLoading && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {categorias.map((cat) => (
-              <div
+              <button
+                type="button"
                 key={cat.slug}
                 onClick={() => router.push(`/painel?categoria=${cat.slug}`)}
-                className="group bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-2xl p-5 flex flex-col items-center gap-3 transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,107,0,0.15)] hover:-translate-y-0.5 cursor-pointer select-none caret-transparent"
+                className="tap-safe group bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-2xl p-5 flex flex-col items-center gap-3 transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,107,0,0.15)] hover:-translate-y-0.5 cursor-pointer select-none caret-transparent text-left"
               >
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-transform duration-200 group-hover:scale-110"
@@ -149,7 +154,7 @@ function PainelConteudo() {
                   </p>
                   <p className="text-[#606060] text-xs mt-1">{cat.totalFigurinhas} figurinhas</p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -164,23 +169,25 @@ function PainelConteudo() {
         <div className="flex items-center gap-2 min-w-0">
           {/* Breadcrumb e voltar */}
           <div className="flex items-center gap-1.5 text-sm flex-wrap">
-            <span
+            <button
+              type="button"
               onClick={() => router.push('/painel')}
-              className="text-[#606060] hover:text-[#ff6b00] transition-colors cursor-pointer"
+              className="tap-safe text-[#606060] hover:text-[#ff6b00] transition-colors cursor-pointer"
             >
               Figurinhas
-            </span>
+            </button>
             {categoriaAtual && (
               <>
                 <ChevronRight className="w-3.5 h-3.5 text-[#404040]" />
-                <span
+                <button
+                  type="button"
                   onClick={() => router.push(`/painel?categoria=${categoriaAtual.slug}`)}
-                  className={`font-semibold transition-colors cursor-pointer ${
+                  className={`tap-safe font-semibold transition-colors cursor-pointer ${
                     subcategoriaAtual ? 'text-[#606060] hover:text-[#ff6b00]' : 'text-white'
                   }`}
                 >
                   {categoriaAtual.nome}
-                </span>
+                </button>
               </>
             )}
             {subcategoriaAtual && (
@@ -195,13 +202,14 @@ function PainelConteudo() {
         <div className="flex items-center gap-3 sm:ml-auto">
           {/* Botao voltar */}
           {subcategoriaAtual && (
-            <span
+            <button
+              type="button"
               onClick={() => router.push(`/painel?categoria=${categoriaSlug}`)}
-              className="flex items-center gap-1.5 text-sm text-[#a0a0a0] hover:text-white border border-[#2a2a2a] hover:border-[#3a3a3a] rounded-lg px-3 py-2 transition-all cursor-pointer"
+              className="tap-safe flex items-center gap-1.5 text-sm text-[#a0a0a0] hover:text-white border border-[#2a2a2a] hover:border-[#3a3a3a] rounded-lg px-3 py-2 transition-all cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               Voltar
-            </span>
+            </button>
           )}
 
           {/* Busca */}
@@ -232,15 +240,16 @@ function PainelConteudo() {
           </p>
           <div className="flex flex-wrap gap-2">
             {categoriaAtual.subcategorias.map((sub) => (
-              <div
+              <button
+                type="button"
                 key={sub.slug}
                 onClick={() => router.push(`/painel?categoria=${categoriaSlug}&sub=${sub.slug}`)}
-                className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-xl px-4 py-2.5 text-sm font-medium text-[#a0a0a0] hover:text-white transition-all hover:shadow-[0_0_12px_rgba(255,107,0,0.1)] cursor-pointer select-none caret-transparent"
+                className="tap-safe flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-xl px-4 py-2.5 text-sm font-medium text-[#a0a0a0] hover:text-white transition-all hover:shadow-[0_0_12px_rgba(255,107,0,0.1)] cursor-pointer select-none caret-transparent"
               >
                 <Folder className="w-4 h-4 text-[#ff6b00]" />
                 {sub.nome}
                 <span className="text-[#404040] text-xs">({sub.totalFigurinhas})</span>
-              </div>
+              </button>
             ))}
           </div>
         </div>

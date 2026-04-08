@@ -118,3 +118,8 @@ input:-webkit-autofill:focus {
 .animate-scale-in {
   animation: scaleIn 0.2s ease-out;
 }
+
+.tap-safe {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}

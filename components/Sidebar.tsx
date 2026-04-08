@@ -1,20 +1,50 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  Zap, User, LogOut, Folder, Sun, Moon, Smile, Bike, Car,
-  Layers, Globe, TrendingUp, Gift, ShoppingBag, Scissors,
-  Navigation, CalendarDays, Sunset, X, ChevronDown
+  Bike,
+  CalendarDays,
+  Car,
+  ChevronDown,
+  Folder,
+  Gift,
+  Globe,
+  Layers,
+  LogOut,
+  Moon,
+  Navigation,
+  Scissors,
+  ShoppingBag,
+  Smile,
+  Sun,
+  Sunset,
+  TrendingUp,
+  User,
+  X,
+  Zap,
 } from 'lucide-react';
 import { Categoria } from '@/types';
 
 const ICONE_MAP: Record<string, React.ElementType> = {
-  Folder, Sun, Moon, Smile, Bike, Car, Layers, Globe,
-  TrendingUp, Gift, ShoppingBag, Scissors, Navigation,
-  CalendarDays, Sunset, Zap,
+  Folder,
+  Sun,
+  Moon,
+  Smile,
+  Bike,
+  Car,
+  Layers,
+  Globe,
+  TrendingUp,
+  Gift,
+  ShoppingBag,
+  Scissors,
+  Navigation,
+  CalendarDays,
+  Sunset,
+  Zap,
 };
 
 interface SidebarProps {
@@ -61,6 +91,11 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
     onFechar();
   }
 
+  function irParaSubcategoria(categoriaSlug: string, subcategoriaSlug: string) {
+    router.push(`/painel?categoria=${categoriaSlug}&sub=${subcategoriaSlug}`);
+    onFechar();
+  }
+
   return (
     <aside
       className={`
@@ -85,8 +120,9 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
           />
         </Link>
         <button
+          type="button"
           onClick={onFechar}
-          className="lg:hidden p-1.5 rounded-lg text-[#606060] hover:text-white hover:bg-[#1a1a1a] transition-colors"
+          className="tap-safe lg:hidden p-1.5 rounded-lg text-[#606060] hover:text-white hover:bg-[#1a1a1a] transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -94,9 +130,7 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
 
       {/* Label categorias */}
       <div className="px-4 pt-5 pb-2">
-        <p className="text-[10px] font-bold text-[#404040] uppercase tracking-widest">
-          Categorias
-        </p>
+        <p className="text-[10px] font-bold text-[#404040] uppercase tracking-widest">Categorias</p>
       </div>
 
       {/* Lista de categorias */}
@@ -109,49 +143,41 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
 
           return (
             <div key={cat.slug}>
-              {/* Item categoria */}
               <div
                 className={`
-                  flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer select-none caret-transparent
+                  relative flex items-center gap-2 rounded-xl select-none caret-transparent
                   transition-all duration-150 group
                   ${isAtiva
                     ? 'bg-[#ff6b00]/15 text-white'
-                    : 'text-[#a0a0a0] hover:bg-[#1a1a1a] hover:text-white'
-                  }
+                    : 'text-[#a0a0a0] hover:bg-[#1a1a1a] hover:text-white'}
                 `}
-                onClick={() => {
-                  irParaCategoria(cat.slug, temSubs);
-                }}
               >
-                {/* Indicador ativo */}
-                {isAtiva && (
-                  <div className="absolute left-0 w-0.5 h-6 bg-[#ff6b00] rounded-r-full" />
-                )}
+                {isAtiva && <div className="absolute left-0 w-0.5 h-6 bg-[#ff6b00] rounded-r-full" />}
 
-                {/* Ícone */}
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all"
-                  style={{
-                    backgroundColor: isAtiva ? `${cat.cor}30` : `${cat.cor}15`,
-                    boxShadow: isAtiva ? `0 0 10px ${cat.cor}40` : 'none',
-                  }}
+                <button
+                  type="button"
+                  onClick={() => irParaCategoria(cat.slug, temSubs)}
+                  className="tap-safe flex min-w-0 flex-1 items-center gap-2.5 px-3 py-2.5 text-left"
                 >
-                  <Icone className="w-4 h-4" style={{ color: cat.cor }} />
-                </div>
+                  <div
+                    className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all"
+                    style={{
+                      backgroundColor: isAtiva ? `${cat.cor}30` : `${cat.cor}15`,
+                      boxShadow: isAtiva ? `0 0 10px ${cat.cor}40` : 'none',
+                    }}
+                  >
+                    <Icone className="w-4 h-4" style={{ color: cat.cor }} />
+                  </div>
 
-                {/* Nome */}
-                <span className="flex-1 text-sm font-semibold truncate">{cat.nome}</span>
+                  <span className="flex-1 text-sm font-semibold truncate">{cat.nome}</span>
+                </button>
 
-                {/* Badge com total ou seta */}
                 {temSubs ? (
                   <button
                     type="button"
                     aria-label={expandida ? `Recolher ${cat.nome}` : `Expandir ${cat.nome}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      toggleExpandida(cat.slug);
-                    }}
-                    className="p-1 -mr-1 rounded-md text-[#404040] hover:text-[#a0a0a0] hover:bg-[#202020] transition-colors"
+                    onClick={() => toggleExpandida(cat.slug)}
+                    className="tap-safe mr-1 p-1 rounded-md text-[#404040] hover:text-[#a0a0a0] hover:bg-[#202020] transition-colors"
                   >
                     <ChevronDown
                       className={`w-3.5 h-3.5 transition-transform duration-200 ${
@@ -160,26 +186,22 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
                     />
                   </button>
                 ) : (
-                  <span className="text-[10px] text-[#404040] font-medium">
+                  <span className="pr-3 text-[10px] text-[#404040] font-medium">
                     {cat.totalFigurinhas}
                   </span>
                 )}
               </div>
 
-              {/* Subcategorias */}
               {temSubs && expandida && (
                 <div className="ml-6 mt-0.5 space-y-0.5 border-l border-[#2a2a2a] pl-3">
-                  {/* Link para ver todas da categoria (arquivos diretos) */}
                   <button
-                    onClick={() => {
-                      irParaCategoria(cat.slug);
-                    }}
+                    type="button"
+                    onClick={() => irParaCategoria(cat.slug)}
                     className={`
-                      w-full text-left flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs transition-colors select-none caret-transparent
+                      tap-safe w-full text-left flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs transition-colors select-none caret-transparent
                       ${isAtiva && !subcategoriaAtiva
                         ? 'text-[#ff6b00] font-semibold'
-                        : 'text-[#606060] hover:text-[#a0a0a0]'
-                      }
+                        : 'text-[#606060] hover:text-[#a0a0a0]'}
                     `}
                   >
                     <span>Todos</span>
@@ -187,19 +209,17 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
 
                   {cat.subcategorias.map((sub) => {
                     const isSubAtiva = categoriaAtiva === cat.slug && subcategoriaAtiva === sub.slug;
+
                     return (
                       <button
                         key={sub.slug}
-                        onClick={() => {
-                          router.push(`/painel?categoria=${cat.slug}&sub=${sub.slug}`);
-                          onFechar();
-                        }}
+                        type="button"
+                        onClick={() => irParaSubcategoria(cat.slug, sub.slug)}
                         className={`
-                          w-full text-left flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-xs transition-all select-none caret-transparent
+                          tap-safe w-full text-left flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-xs transition-all select-none caret-transparent
                           ${isSubAtiva
                             ? 'text-[#ff6b00] font-semibold bg-[#ff6b00]/10'
-                            : 'text-[#606060] hover:text-[#a0a0a0] hover:bg-[#1a1a1a]'
-                          }
+                            : 'text-[#606060] hover:text-[#a0a0a0] hover:bg-[#1a1a1a]'}
                         `}
                       >
                         <span className="truncate">{sub.nome}</span>
@@ -216,7 +236,7 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
         })}
       </nav>
 
-      {/* Rodapé com perfil e logout */}
+      {/* Rodape com perfil e logout */}
       <div className="border-t border-[#1a1a1a] p-3 space-y-1">
         <Link
           href="/perfil"
@@ -226,16 +246,15 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
             <User className="w-4 h-4" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold truncate text-white">
-              {usuario?.nome || 'Meu Perfil'}
-            </p>
+            <p className="text-xs font-semibold truncate text-white">{usuario?.nome || 'Meu Perfil'}</p>
             <p className="text-[10px] text-[#404040] truncate">{usuario?.email || ''}</p>
           </div>
         </Link>
 
         <button
+          type="button"
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#606060] hover:text-red-400 hover:bg-red-500/10 transition-all"
+          className="tap-safe w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#606060] hover:text-red-400 hover:bg-red-500/10 transition-all"
         >
           <LogOut className="w-4 h-4 flex-shrink-0" />
           <span className="text-sm font-medium">Sair</span>
