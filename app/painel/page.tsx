@@ -1,63 +1,101 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Suspense } from 'react';
-import { Search, ChevronRight, ArrowLeft, Folder } from 'lucide-react';
-import { Categoria, Figurinha } from '@/types';
-import ModalFigurinha from '@/components/ModalFigurinha';
+import { Suspense, useDeferredValue, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeft, ChevronRight, Folder, Search } from 'lucide-react';
+import { usePainelData } from '@/components/PainelDataContext';
 import CardFigurinha from '@/components/CardFigurinha';
+import ModalFigurinha from '@/components/ModalFigurinha';
+import { Figurinha } from '@/types';
 
 function PainelConteudo() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { categorias, categoriasError, categoriasLoading } = usePainelData();
   const categoriaSlug = searchParams.get('categoria');
   const subcategoriaSlug = searchParams.get('sub');
 
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [figurinhas, setFigurinhas] = useState<Figurinha[]>([]);
   const [busca, setBusca] = useState('');
   const [loading, setLoading] = useState(false);
   const [modalFigurinha, setModalFigurinha] = useState<Figurinha | null>(null);
-  const [erroApi, setErroApi] = useState<string | null>(null);
+  const [erroFigurinhas, setErroFigurinhas] = useState<string | null>(null);
+  const figurinhasCache = useRef(new Map<string, Figurinha[]>());
+  const buscaDeferred = useDeferredValue(busca);
 
-  const categoriaAtual = categorias.find((c) => c.slug === categoriaSlug);
-  const subcategoriaAtual = categoriaAtual?.subcategorias.find((s) => s.slug === subcategoriaSlug);
-
-  const figurinhasFiltradas = figurinhas.filter((f) =>
-    f.nome.toLowerCase().includes(busca.toLowerCase())
+  const categoriaAtual = categorias.find((categoria) => categoria.slug === categoriaSlug);
+  const subcategoriaAtual = categoriaAtual?.subcategorias.find(
+    (subcategoria) => subcategoria.slug === subcategoriaSlug
   );
 
-  useEffect(() => {
-    fetch('/api/figurinhas')
-      .then(async (r) => {
-        const text = await r.text();
-        if (!r.ok || text.startsWith('<')) {
-          setErroApi(`HTTP ${r.status} — resposta: ${text.slice(0, 200)}`);
-          return;
-        }
-        const data = JSON.parse(text);
-        if (data.error) setErroApi(data.error);
-        setCategorias(data.categorias || []);
-      })
-      .catch((e) => setErroApi(String(e)));
-  }, []);
+  const figurinhasFiltradas = figurinhas.filter((figurinha) =>
+    figurinha.nome.toLowerCase().includes(buscaDeferred.toLowerCase())
+  );
 
   useEffect(() => {
     if (!categoriaSlug) {
       setFigurinhas([]);
+      setErroFigurinhas(null);
       return;
     }
 
-    setLoading(true);
     const url = subcategoriaSlug
       ? `/api/figurinhas/${categoriaSlug}/${subcategoriaSlug}`
       : `/api/figurinhas/${categoriaSlug}`;
+    const cached = figurinhasCache.current.get(url);
 
-    fetch(url)
-      .then((r) => r.json())
-      .then((data) => setFigurinhas(data.figurinhas || []))
-      .finally(() => setLoading(false));
+    if (cached) {
+      setFigurinhas(cached);
+      setErroFigurinhas(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    let ativo = true;
+
+    async function carregarFigurinhas() {
+      setLoading(true);
+      setErroFigurinhas(null);
+
+      try {
+        const response = await fetch(url, {
+          signal: controller.signal,
+        });
+        const text = await response.text();
+
+        if (!ativo) {
+          return;
+        }
+
+        if (!response.ok || text.startsWith('<')) {
+          setFigurinhas([]);
+          setErroFigurinhas(`HTTP ${response.status} - resposta invalida`);
+          return;
+        }
+
+        const data = JSON.parse(text);
+        const proximasFigurinhas = data.figurinhas || [];
+        figurinhasCache.current.set(url, proximasFigurinhas);
+        setFigurinhas(proximasFigurinhas);
+        setErroFigurinhas(data.error || null);
+      } catch (error) {
+        if (!controller.signal.aborted && ativo) {
+          setFigurinhas([]);
+          setErroFigurinhas(error instanceof Error ? error.message : String(error));
+        }
+      } finally {
+        if (ativo) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void carregarFigurinhas();
+
+    return () => {
+      ativo = false;
+      controller.abort();
+    };
   }, [categoriaSlug, subcategoriaSlug]);
 
   // Tela inicial - sem categoria selecionada
@@ -74,36 +112,47 @@ function PainelConteudo() {
           </p>
         </div>
 
-        {/* Erro de conexão */}
-        {erroApi && (
+        {/* Erro de conexao */}
+        {categoriasError && (
           <div className="mb-6 bg-red-900/30 border border-red-500/50 rounded-xl p-4 text-red-400 text-sm font-mono break-all">
-            Erro: {erroApi}
+            Erro: {categoriasError}
+          </div>
+        )}
+
+        {categoriasLoading && (
+          <div className="flex items-center justify-center py-16">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-10 h-10 border-2 border-[#ff6b00] border-t-transparent rounded-full animate-spin" />
+              <p className="text-[#606060] text-sm">Carregando categorias...</p>
+            </div>
           </div>
         )}
 
         {/* Grid de categorias */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {categorias.map((cat) => (
-            <div
-              key={cat.slug}
-              onClick={() => router.push(`/painel?categoria=${cat.slug}`)}
-              className="group bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-2xl p-5 flex flex-col items-center gap-3 transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,107,0,0.15)] hover:-translate-y-0.5 cursor-pointer"
-            >
+        {!categoriasLoading && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {categorias.map((cat) => (
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-transform duration-200 group-hover:scale-110"
-                style={{ backgroundColor: `${cat.cor}20`, boxShadow: `0 0 12px ${cat.cor}30` }}
+                key={cat.slug}
+                onClick={() => router.push(`/painel?categoria=${cat.slug}`)}
+                className="group bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-2xl p-5 flex flex-col items-center gap-3 transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,107,0,0.15)] hover:-translate-y-0.5 cursor-pointer"
               >
-                <Folder className="w-6 h-6" style={{ color: cat.cor }} />
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-transform duration-200 group-hover:scale-110"
+                  style={{ backgroundColor: `${cat.cor}20`, boxShadow: `0 0 12px ${cat.cor}30` }}
+                >
+                  <Folder className="w-6 h-6" style={{ color: cat.cor }} />
+                </div>
+                <div className="text-center">
+                  <p className="text-white font-bold text-xs leading-tight line-clamp-2">
+                    {cat.nome}
+                  </p>
+                  <p className="text-[#606060] text-xs mt-1">{cat.totalFigurinhas} figurinhas</p>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-white font-bold text-xs leading-tight line-clamp-2">
-                  {cat.nome}
-                </p>
-                <p className="text-[#606060] text-xs mt-1">{cat.totalFigurinhas} figurinhas</p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -115,7 +164,10 @@ function PainelConteudo() {
         <div className="flex items-center gap-2 min-w-0">
           {/* Breadcrumb e voltar */}
           <div className="flex items-center gap-1.5 text-sm flex-wrap">
-            <span onClick={() => router.push('/painel')} className="text-[#606060] hover:text-[#ff6b00] transition-colors cursor-pointer">
+            <span
+              onClick={() => router.push('/painel')}
+              className="text-[#606060] hover:text-[#ff6b00] transition-colors cursor-pointer"
+            >
               Figurinhas
             </span>
             {categoriaAtual && (
@@ -141,7 +193,7 @@ function PainelConteudo() {
         </div>
 
         <div className="flex items-center gap-3 sm:ml-auto">
-          {/* Botão voltar */}
+          {/* Botao voltar */}
           {subcategoriaAtual && (
             <span
               onClick={() => router.push(`/painel?categoria=${categoriaSlug}`)}
@@ -159,14 +211,20 @@ function PainelConteudo() {
               type="text"
               placeholder="Buscar..."
               value={busca}
-              onChange={(e) => setBusca(e.target.value)}
+              onChange={(event) => setBusca(event.target.value)}
               className="w-full sm:w-52 bg-[#1a1a1a] border border-[#2a2a2a] focus:border-[#ff6b00] rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-[#404040] outline-none transition-all"
             />
           </div>
         </div>
       </div>
 
-      {/* Subcategorias (se houver e não estiver dentro de uma) */}
+      {erroFigurinhas && (
+        <div className="mb-4 bg-red-900/30 border border-red-500/50 rounded-xl p-4 text-red-400 text-sm font-mono break-all">
+          Erro: {erroFigurinhas}
+        </div>
+      )}
+
+      {/* Subcategorias (se houver e nao estiver dentro de uma) */}
       {!subcategoriaAtual && categoriaAtual && categoriaAtual.subcategorias.length > 0 && (
         <div className="mb-6">
           <p className="text-xs font-semibold text-[#606060] uppercase tracking-wider mb-3">
@@ -203,15 +261,16 @@ function PainelConteudo() {
         <>
           <div className="flex items-center justify-between mb-4">
             <p className="text-[#606060] text-sm">
-              <span className="text-[#ff6b00] font-bold">{figurinhasFiltradas.length}</span> figurinhas
+              <span className="text-[#ff6b00] font-bold">{figurinhasFiltradas.length}</span>{' '}
+              figurinhas
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-            {figurinhasFiltradas.map((fig, i) => (
+            {figurinhasFiltradas.map((figurinha) => (
               <CardFigurinha
-                key={i}
-                figurinha={fig}
-                onVisualizar={() => setModalFigurinha(fig)}
+                key={figurinha.url}
+                figurinha={figurinha}
+                onVisualizar={() => setModalFigurinha(figurinha)}
               />
             ))}
           </div>
@@ -223,28 +282,43 @@ function PainelConteudo() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Search className="w-12 h-12 text-[#2a2a2a] mx-auto mb-3" />
-            <p className="text-[#606060]">Nenhuma figurinha encontrada para &quot;{busca}&quot;</p>
+            <p className="text-[#606060]">
+              Nenhuma figurinha encontrada para &quot;{busca}&quot;
+            </p>
           </div>
         </div>
       )}
 
       {/* Estado vazio sem busca */}
-      {!loading && figurinhas.length === 0 && categoriaAtual && !subcategoriaAtual && categoriaAtual.subcategorias.length > 0 && (
+      {!loading &&
+        figurinhas.length === 0 &&
+        categoriaAtual &&
+        !subcategoriaAtual &&
+        categoriaAtual.subcategorias.length > 0 &&
+        !erroFigurinhas && (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <Folder className="w-12 h-12 text-[#2a2a2a] mx-auto mb-3" />
+              <p className="text-[#a0a0a0] font-medium">Selecione uma subpasta</p>
+              <p className="text-[#606060] text-sm mt-1">Esta categoria tem subpastas acima</p>
+            </div>
+          </div>
+        )}
+
+      {/* Estado vazio da pasta */}
+      {!loading && figurinhas.length === 0 && categoriaAtual && subcategoriaAtual && !erroFigurinhas && (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Folder className="w-12 h-12 text-[#2a2a2a] mx-auto mb-3" />
-            <p className="text-[#a0a0a0] font-medium">Selecione uma subpasta</p>
-            <p className="text-[#606060] text-sm mt-1">Esta categoria tem subpastas acima</p>
+            <p className="text-[#a0a0a0] font-medium">Nenhuma figurinha encontrada</p>
+            <p className="text-[#606060] text-sm mt-1">Essa pasta nao possui imagens disponiveis.</p>
           </div>
         </div>
       )}
 
       {/* Modal */}
       {modalFigurinha && (
-        <ModalFigurinha
-          figurinha={modalFigurinha}
-          onFechar={() => setModalFigurinha(null)}
-        />
+        <ModalFigurinha figurinha={modalFigurinha} onFechar={() => setModalFigurinha(null)} />
       )}
     </div>
   );
@@ -252,11 +326,13 @@ function PainelConteudo() {
 
 export default function PainelPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center h-full">
-        <div className="w-10 h-10 border-2 border-[#ff6b00] border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-full">
+          <div className="w-10 h-10 border-2 border-[#ff6b00] border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
       <PainelConteudo />
     </Suspense>
   );

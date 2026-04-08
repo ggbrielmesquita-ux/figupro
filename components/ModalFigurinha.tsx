@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { X, Download, Copy, CheckCheck, Instagram } from 'lucide-react';
 import { Figurinha } from '@/types';
@@ -173,12 +174,17 @@ export default function ModalFigurinha({ figurinha, onFechar }: ModalFigurinhaPr
 
         {/* Imagem */}
         <div className="flex-1 bg-[#111111] flex items-center justify-center p-6 min-h-[280px] max-h-[420px]">
-          <img
-            src={figurinha.url}
-            alt={figurinha.nome}
-            className="max-w-full max-h-full object-contain rounded-lg"
-            style={{ imageRendering: 'pixelated' }}
-          />
+          <div className="relative w-full h-full">
+            <Image
+              src={figurinha.url}
+              alt={figurinha.nome}
+              fill
+              sizes="(max-width: 768px) 90vw, 560px"
+              className="object-contain rounded-lg"
+              style={{ imageRendering: 'pixelated' }}
+              priority
+            />
+          </div>
         </div>
 
 

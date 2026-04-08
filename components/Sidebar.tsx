@@ -1,12 +1,13 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Zap, User, LogOut, Folder, Sun, Moon, Smile, Bike, Car,
   Layers, Globe, TrendingUp, Gift, ShoppingBag, Scissors,
-  Navigation, CalendarDays, Sunset, X, ChevronDown, ChevronRight
+  Navigation, CalendarDays, Sunset, X, ChevronDown
 } from 'lucide-react';
 import { Categoria } from '@/types';
 
@@ -20,23 +21,15 @@ interface SidebarProps {
   categorias: Categoria[];
   aberta: boolean;
   onFechar: () => void;
+  usuario: { nome: string | null; email: string } | null;
 }
 
-export default function Sidebar({ categorias, aberta, onFechar }: SidebarProps) {
+export default function Sidebar({ categorias, aberta, onFechar, usuario }: SidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoriaAtiva = searchParams.get('categoria');
   const subcategoriaAtiva = searchParams.get('sub');
   const [expandidas, setExpandidas] = useState<Set<string>>(new Set());
-  const [usuario, setUsuario] = useState<{ nome: string | null; email: string } | null>(null);
-
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.usuario) setUsuario(data.usuario);
-      });
-  }, []);
 
   useEffect(() => {
     if (categoriaAtiva) {
@@ -73,7 +66,14 @@ export default function Sidebar({ categorias, aberta, onFechar }: SidebarProps) 
       {/* Logo */}
       <div className="flex items-center justify-between px-5 py-5 border-b border-[#1a1a1a]">
         <Link href="/painel" className="flex items-center gap-2.5 mx-auto">
-          <img src="/stikz.png" alt="stikz logo" className="w-28 h-auto object-contain" />
+          <Image
+            src="/stikz.png"
+            alt="stikz logo"
+            width={112}
+            height={32}
+            priority
+            className="w-28 h-auto object-contain"
+          />
         </Link>
         <button
           onClick={onFechar}

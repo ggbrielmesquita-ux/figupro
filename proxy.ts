@@ -4,7 +4,7 @@ import { verifyJWT } from '@/lib/jwt';
 const ROTAS_PROTEGIDAS = ['/painel', '/perfil'];
 const ROTAS_AUTH = ['/login', '/esqueci-senha', '/resetar-senha'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isRotaProtegida = ROTAS_PROTEGIDAS.some((rota) => pathname.startsWith(rota));

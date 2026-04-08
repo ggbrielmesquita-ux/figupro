@@ -1,9 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
-import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { Lock, Eye, EyeOff, Zap, CheckCircle } from 'lucide-react';
+import { CheckCircle, Eye, EyeOff, Lock } from 'lucide-react';
 
 export default function ResetarSenhaPage() {
   const params = useParams();
@@ -61,7 +61,14 @@ export default function ResetarSenhaPage() {
         <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-8 shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
           {/* Logo */}
           <div className="text-center mb-8 flex flex-col items-center">
-            <img src="/stikz.png" alt="stikz logo" className="w-40 h-auto object-contain mb-2" />
+            <Image
+              src="/stikz.png"
+              alt="stikz logo"
+              width={160}
+              height={46}
+              priority
+              className="w-40 h-auto object-contain mb-2"
+            />
           </div>
 
           {sucesso ? (

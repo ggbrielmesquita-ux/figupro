@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { Download, Eye } from 'lucide-react';
 import { Figurinha } from '@/types';
@@ -44,11 +45,14 @@ export default function CardFigurinha({ figurinha, onVisualizar }: CardFigurinha
       {/* Imagem */}
       <div className="aspect-square relative bg-[#111111] flex items-center justify-center">
         {!imageError ? (
-          <img
+          <Image
             src={figurinha.url}
             alt={figurinha.nome}
-            className="w-full h-full object-contain p-2 transition-transform duration-200 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1536px) 20vw, 16vw"
+            className="object-contain p-2 transition-transform duration-200 group-hover:scale-105"
             onError={() => setImageError(true)}
+            loading="lazy"
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-[#2a2a2a]">

@@ -1,9 +1,10 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Zap, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,7 +54,14 @@ export default function LoginPage() {
         <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-8 shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
           {/* Logo */}
           <div className="text-center mb-8 flex flex-col items-center">
-            <img src="/stikz.png" alt="stikz logo" className="w-40 h-auto object-contain mb-2" />
+            <Image
+              src="/stikz.png"
+              alt="stikz logo"
+              width={160}
+              height={46}
+              priority
+              className="w-40 h-auto object-contain mb-2"
+            />
             <p className="text-[#606060] text-sm mt-2">Acesse sua conta</p>
           </div>
 

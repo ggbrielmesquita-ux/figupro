@@ -1,8 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Mail, Zap, ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Mail } from 'lucide-react';
 
 export default function EsqueciSenhaPage() {
   const [email, setEmail] = useState('');
@@ -45,7 +46,14 @@ export default function EsqueciSenhaPage() {
         <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-8 shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
           {/* Logo */}
           <div className="text-center mb-8 flex flex-col items-center">
-            <img src="/stikz.png" alt="stikz logo" className="w-40 h-auto object-contain mb-2" />
+            <Image
+              src="/stikz.png"
+              alt="stikz logo"
+              width={160}
+              height={46}
+              priority
+              className="w-40 h-auto object-contain mb-2"
+            />
             <p className="text-[#606060] text-sm mt-2">
               Enviaremos um link para seu email
             </p>
