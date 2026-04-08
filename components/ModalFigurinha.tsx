@@ -174,13 +174,14 @@ export default function ModalFigurinha({ figurinha, onFechar }: ModalFigurinhaPr
 
         {/* Imagem */}
         <div className="flex-1 bg-[#111111] flex items-center justify-center p-6 min-h-[280px] max-h-[420px]">
-          <div className="relative w-full h-full">
+          <div className="flex items-center justify-center w-full h-full min-h-[232px]">
             <Image
               src={figurinha.url}
               alt={figurinha.nome}
-              fill
+              width={900}
+              height={900}
               sizes="(max-width: 768px) 90vw, 560px"
-              className="object-contain rounded-lg"
+              className="w-auto h-auto max-w-full max-h-[360px] object-contain rounded-lg"
               style={{ imageRendering: 'pixelated' }}
               priority
             />

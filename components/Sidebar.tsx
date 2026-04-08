@@ -52,6 +52,15 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
     });
   }
 
+  function irParaCategoria(slug: string, expandir = false) {
+    if (expandir) {
+      setExpandidas((prev) => new Set([...prev, slug]));
+    }
+
+    router.push(`/painel?categoria=${slug}`);
+    onFechar();
+  }
+
   return (
     <aside
       className={`
@@ -111,12 +120,7 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
                   }
                 `}
                 onClick={() => {
-                  if (temSubs) {
-                    toggleExpandida(cat.slug);
-                  } else {
-                    router.push(`/painel?categoria=${cat.slug}`);
-                    onFechar();
-                  }
+                  irParaCategoria(cat.slug, temSubs);
                 }}
               >
                 {/* Indicador ativo */}
@@ -140,11 +144,21 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
 
                 {/* Badge com total ou seta */}
                 {temSubs ? (
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 text-[#404040] transition-transform duration-200 ${
-                      expandida ? 'rotate-180' : ''
-                    }`}
-                  />
+                  <button
+                    type="button"
+                    aria-label={expandida ? `Recolher ${cat.nome}` : `Expandir ${cat.nome}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      toggleExpandida(cat.slug);
+                    }}
+                    className="p-1 -mr-1 rounded-md text-[#404040] hover:text-[#a0a0a0] hover:bg-[#202020] transition-colors"
+                  >
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        expandida ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
                 ) : (
                   <span className="text-[10px] text-[#404040] font-medium">
                     {cat.totalFigurinhas}
@@ -158,8 +172,7 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
                   {/* Link para ver todas da categoria (arquivos diretos) */}
                   <button
                     onClick={() => {
-                      router.push(`/painel?categoria=${cat.slug}`);
-                      onFechar();
+                      irParaCategoria(cat.slug);
                     }}
                     className={`
                       w-full text-left flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs transition-colors
