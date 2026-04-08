@@ -135,7 +135,7 @@ function PainelConteudo() {
               <div
                 key={cat.slug}
                 onClick={() => router.push(`/painel?categoria=${cat.slug}`)}
-                className="group bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-2xl p-5 flex flex-col items-center gap-3 transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,107,0,0.15)] hover:-translate-y-0.5 cursor-pointer"
+                className="group bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-2xl p-5 flex flex-col items-center gap-3 transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,107,0,0.15)] hover:-translate-y-0.5 cursor-pointer select-none caret-transparent"
               >
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-transform duration-200 group-hover:scale-110"
@@ -235,7 +235,7 @@ function PainelConteudo() {
               <div
                 key={sub.slug}
                 onClick={() => router.push(`/painel?categoria=${categoriaSlug}&sub=${sub.slug}`)}
-                className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-xl px-4 py-2.5 text-sm font-medium text-[#a0a0a0] hover:text-white transition-all hover:shadow-[0_0_12px_rgba(255,107,0,0.1)] cursor-pointer"
+                className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#ff6b00] rounded-xl px-4 py-2.5 text-sm font-medium text-[#a0a0a0] hover:text-white transition-all hover:shadow-[0_0_12px_rgba(255,107,0,0.1)] cursor-pointer select-none caret-transparent"
               >
                 <Folder className="w-4 h-4 text-[#ff6b00]" />
                 {sub.nome}

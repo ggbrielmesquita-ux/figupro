@@ -112,7 +112,7 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
               {/* Item categoria */}
               <div
                 className={`
-                  flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer
+                  flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer select-none caret-transparent
                   transition-all duration-150 group
                   ${isAtiva
                     ? 'bg-[#ff6b00]/15 text-white'
@@ -175,7 +175,7 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
                       irParaCategoria(cat.slug);
                     }}
                     className={`
-                      w-full text-left flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs transition-colors
+                      w-full text-left flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs transition-colors select-none caret-transparent
                       ${isAtiva && !subcategoriaAtiva
                         ? 'text-[#ff6b00] font-semibold'
                         : 'text-[#606060] hover:text-[#a0a0a0]'
@@ -195,7 +195,7 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
                           onFechar();
                         }}
                         className={`
-                          w-full text-left flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-xs transition-all
+                          w-full text-left flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-xs transition-all select-none caret-transparent
                           ${isSubAtiva
                             ? 'text-[#ff6b00] font-semibold bg-[#ff6b00]/10'
                             : 'text-[#606060] hover:text-[#a0a0a0] hover:bg-[#1a1a1a]'
