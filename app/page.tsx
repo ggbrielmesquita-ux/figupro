@@ -119,22 +119,24 @@ export default function LandingPage() {
                </FadeIn>
 
                {/* Headline Impactante e Direta */}
-               <FadeIn delay={0.2} className="relative w-full max-w-6xl">
-                  <h1 className="text-[3.5rem] md:text-7xl lg:text-[7rem] font-black tracking-tighter mb-8 leading-[1.0] text-white drop-shadow-2xl">
-                     Venda mais todos os dias com <br className="hidden md:block" />
-                     <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#ff6a00] via-[#ff9d2e] to-[#ffb15c] pb-2 mt-2">
+               <FadeIn delay={0.2} className="relative w-full max-w-5xl">
+                  <h1 className="font-black tracking-tighter mb-8 text-white drop-shadow-2xl flex flex-col items-center leading-tight">
+                     <span className="text-3xl md:text-4xl lg:text-5xl text-white/90 mb-2">
+                        Seja impossível de ignorar com
+                     </span>
+                     <span className="text-5xl md:text-7xl lg:text-8xl relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#ff6a00] via-[#ff9d2e] to-[#ffb15c] pb-2">
                         Figurinhas Premium.
-                        {/* Curva luminosa sublinhando o texto dramático */}
-                        <div className="absolute bottom-[5px] left-[5%] w-[90%] h-[6px] bg-gradient-to-r from-transparent via-[#ff6a00]/80 to-transparent blur-md rounded-full"></div>
-                        <div className="absolute bottom-[8px] left-[10%] w-[80%] h-[2px] bg-[#ffb15c]/90 rounded-full"></div>
+                        {/* Curva luminosa leve */}
+                        <div className="absolute bottom-0 left-[10%] w-[80%] h-[4px] bg-gradient-to-r from-transparent via-[#ff6a00]/60 to-transparent blur-md rounded-full"></div>
+                        <div className="absolute bottom-[2px] left-[20%] w-[60%] h-[1px] bg-[#ffb15c]/50 rounded-full"></div>
                      </span>
                   </h1>
                </FadeIn>
 
                {/* Subheadline Direta (Benefício + Ação) */}
                <FadeIn delay={0.3}>
-                  <p className="mt-4 text-xl md:text-2xl text-white/60 max-w-3xl mx-auto mb-16 leading-[1.7] font-light">
-                     Chega de perder horas montando artes do zero. Acesse nossa biblioteca exclusiva, copie o adesivo 3D e <strong className="text-white font-medium">cole no seu Story para dobrar seus cliques e conversões</strong> instantaneamente.
+                  <p className="mt-2 text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-12 leading-[1.8] font-light">
+                     Prenda muito mais a atenção dos seus seguidores. Acesse nossa biblioteca exclusiva, copie o adesivo 3D e deixe <strong className="text-white font-medium">seus Stories instantaneamente com o visual mais profissional</strong> da sua região.
                   </p>
                </FadeIn>
 
@@ -145,15 +147,15 @@ export default function LandingPage() {
                      <div className="absolute -inset-4 bg-gradient-to-r from-[#ff6a00] to-[#ff9d2e] rounded-full blur-2xl opacity-40 group-hover:opacity-80 transition-opacity duration-300 pointer-events-none"></div>
                      <div className="absolute -inset-1 bg-white/20 rounded-full blur-md opacity-0 group-hover:opacity-50 transition-opacity duration-300 pointer-events-none"></div>
 
-                     <Link href="/cadastro" className="relative flex items-center justify-center gap-4 bg-gradient-to-b from-[#ff832b] via-[#ff6a00] to-[#cc5600] border-t border-[#ffb15c]/50 border-b-2 border-black/50 text-white px-12 py-6 sm:py-7 rounded-[2.5rem] font-black text-xl md:text-2xl transition-all shadow-[inset_0_2px_4px_rgba(255,255,255,0.4),_0_20px_40px_rgba(0,0,0,0.6)] overflow-hidden">
+                     <Link href="/cadastro" className="relative flex items-center justify-center gap-4 bg-gradient-to-b from-[#ff832b] via-[#ff6a00] to-[#cc5600] border-t border-[#ffb15c]/50 border-b-2 border-black/50 text-white px-10 py-5 sm:py-6 rounded-full font-black text-lg md:text-xl transition-all shadow-[inset_0_2px_4px_rgba(255,255,255,0.4),_0_20px_40px_rgba(0,0,0,0.6)] overflow-hidden">
                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 mix-blend-overlay"></div>
 
                         {/* Brilho cruzando o botão */}
                         <div className="absolute top-0 -left-[100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-30deg] group-hover:left-[200%] transition-all duration-1000 ease-in-out"></div>
 
-                        <span className="relative z-10 tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">Começar Agora</span>
-                        <div className="relative z-10 bg-black/20 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)]">
-                           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 group-hover:scale-110 transition-all duration-300 text-white" />
+                        <span className="relative z-10 tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">Quero destacar meus Stories</span>
+                        <div className="relative z-10 bg-black/20 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)]">
+                           <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:scale-110 transition-all duration-300 text-white" />
                         </div>
                      </Link>
                   </motion.div>
@@ -196,9 +198,9 @@ export default function LandingPage() {
                      {/* Header do story REALSITA */}
                      <div className="flex items-center justify-between mb-8 relative z-10 pt-2 px-1">
                         <div className="flex items-center gap-3">
-                           <img src="https://i.pravatar.cc/150?img=11" alt="Avatar" className="w-9 h-9 rounded-full object-cover border border-white/20 shadow-md" />
+                           <img src="https://i.pravatar.cc/150?img=47" alt="Avatar" className="w-9 h-9 rounded-full object-cover border border-white/20 shadow-md" />
                            <div className="flex flex-col">
-                              <span className="text-white text-xs font-semibold drop-shadow-md">@motors.premium</span>
+                              <span className="text-white text-xs font-semibold drop-shadow-md">@gabriel.daily</span>
                               <span className="text-white/50 text-[9px] drop-shadow-md">3 h</span>
                            </div>
                         </div>
@@ -209,9 +211,9 @@ export default function LandingPage() {
                         </div>
                      </div>
 
-                     {/* Tela Rica Stikz Aplicada - Contexto CARRO DE LUXO */}
+                     {/* Tela Rica Stikz Aplicada - Contexto LIFESTYLE NEUTRO */}
                      <div className="flex-1 bg-[#111] rounded-[2.5rem] border border-white/10 flex flex-col items-center justify-between pb-8 relative overflow-hidden group mb-10 shadow-[inner_0_0_50px_rgba(0,0,0,0.8)]">
-                        <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&q=80" alt="Contexto Carro" className="absolute inset-0 w-full h-full object-cover opacity-80" />
+                        <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&q=80" alt="Contexto Lifestyle Coffee" className="absolute inset-0 w-full h-full object-cover opacity-80" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40"></div>
 
                         {/* Top Spacer */}
@@ -224,9 +226,9 @@ export default function LandingPage() {
                            transition={{ delay: 1.5, type: "spring", stiffness: 120, damping: 10 }}
                            className="bg-black/80 p-5 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.8),_0_0_30px_rgba(255,106,0,0.4),_inset_0_2px_2px_rgba(255,255,255,0.2)] backdrop-blur-xl relative z-10 transform-gpu flex flex-col items-center"
                         >
-                           <div className="bg-[#ff6a00] text-black text-[10px] uppercase font-black tracking-widest px-3 py-1 rounded-sm mb-2 transform -skew-x-12">Oportunidade Única</div>
+                           <div className="bg-[#ff6a00] text-black text-[10px] uppercase font-black tracking-widest px-3 py-1 rounded-sm mb-2 transform -skew-x-12">Bastidores</div>
                            <span className="text-white font-black text-3xl uppercase tracking-tighter leading-[0.9] block drop-shadow-2xl text-center">
-                              Audi Q5<br/><span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-[#aaa]">Blindado</span>
+                              Rotina<br/><span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-[#aaa]">Diária</span>
                            </span>
                         </motion.div>
                      </div>
@@ -241,7 +243,10 @@ export default function LandingPage() {
          {/* ------------------------------------------------------------- */}
          {/* 1.5 PROVA VISUAL DE IMPACTO (Antes vs Depois)                   */}
          {/* ------------------------------------------------------------- */}
-         <section className="py-32 relative z-10 bg-[#050505] border-y border-white/5 overflow-hidden">
+         <section className="py-32 relative z-10 bg-[#050505] overflow-hidden">
+            {/* Transição suave do Hero para cá (Fade do preto pro escuro) */}
+            <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-[#0b0b0b] to-transparent"></div>
+
             {/* Luz de Fundo da Seção */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[1000px] h-[400px] bg-[#ff6a00]/[0.03] rounded-full blur-[150px] pointer-events-none"></div>
 
