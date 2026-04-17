@@ -7,6 +7,55 @@ import { PainelDataProvider } from '@/components/PainelDataContext';
 import Sidebar from '@/components/Sidebar';
 import { Categoria } from '@/types';
 
+function GlobalLoader({ isLoading }: { isLoading: boolean }) {
+  const [progress, setProgress] = useState(0);
+  const [show, setShow] = useState(true);
+
+  useEffect(() => {
+    if (isLoading) {
+      // Simulate fake loading
+      const interval = setInterval(() => {
+        setProgress(p => Math.min(p + Math.random() * 15, 95));
+      }, 100);
+      return () => clearInterval(interval);
+    } else {
+      setProgress(100);
+      const to = setTimeout(() => setShow(false), 800); // tempo de saida
+      return () => clearTimeout(to);
+    }
+  }, [isLoading]);
+
+  if (!show) return null;
+
+  return (
+    <div className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505] transition-all duration-700 ease-[cubic-bezier(0.87,0,0.13,1)] overflow-hidden ${isLoading ? 'opacity-100' : 'opacity-0 scale-[1.02] pointer-events-none'}`}>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#ff6a00] rounded-full blur-[120px] opacity-[0.15] animate-pulse"></div>
+      
+      <div className="relative z-10 flex flex-col items-center gap-8">
+        <h1 
+          className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase relative select-none"
+          style={{ WebkitTextStroke: '2px rgba(255, 106, 0, 0.2)', color: 'transparent' }}
+        >
+          STIKZ
+          <span 
+             className="absolute top-0 left-0 overflow-hidden break-inside-avoid text-[#ff6a00] drop-shadow-[0_0_15px_#ff6a00] transition-all duration-300 whitespace-nowrap"
+             style={{ width: `${progress}%`, WebkitTextStroke: '0px' }}
+          >
+             STIKZ
+          </span>
+        </h1>
+        
+        <div className="w-48 h-[2px] bg-white/5 rounded-full overflow-hidden relative shadow-[inset_0_1px_1px_rgba(0,0,0,0.5)]">
+           <div 
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#cc5600] via-[#ff6a00] to-[#ff9d2e] shadow-[0_0_10px_#ff6a00] transition-all duration-200 ease-out"
+              style={{ width: `${progress}%` }}
+           ></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PainelLayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -99,6 +148,7 @@ function PainelLayoutShell({ children }: { children: React.ReactNode }) {
         usuario,
       }}
     >
+      <GlobalLoader isLoading={categoriasLoading} />
       <div className="flex h-screen bg-[#0a0a0a] overflow-hidden">
         {sidebarAberta && (
           <div
