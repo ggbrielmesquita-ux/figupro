@@ -47,6 +47,8 @@ const config: Config = {
         'fade-in': 'fadeIn 0.2s ease-in-out',
         'slide-in': 'slideIn 0.3s ease-out',
         'glow-pulse': 'glowPulse 2s ease-in-out infinite',
+        'marquee': 'marquee 30s linear infinite',
+        'marquee-reverse': 'marquee-reverse 30s linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -60,6 +62,14 @@ const config: Config = {
         glowPulse: {
           '0%, 100%': { boxShadow: '0 0 10px rgba(255, 107, 0, 0.2)' },
           '50%': { boxShadow: '0 0 25px rgba(255, 107, 0, 0.5)' },
+        },
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-100%)' },
+        },
+        'marquee-reverse': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0%)' },
         },
       },
     },

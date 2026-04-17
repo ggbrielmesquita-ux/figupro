@@ -129,12 +129,12 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
       </div>
 
       {/* Label categorias */}
-      <div className="px-4 pt-5 pb-2">
-        <p className="text-[10px] font-bold text-[#404040] uppercase tracking-widest">Categorias</p>
+      <div className="px-5 pt-8 pb-3">
+        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Cofres de Acesso</p>
       </div>
 
       {/* Lista de categorias */}
-      <nav className="flex-1 overflow-y-auto px-3 pb-3 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto px-4 pb-4 space-y-1">
         {categorias.map((cat) => {
           const Icone = ICONE_MAP[cat.icone] || Folder;
           const isAtiva = categoriaAtiva === cat.slug;
@@ -142,34 +142,55 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
           const expandida = expandidas.has(cat.slug);
 
           return (
-            <div key={cat.slug}>
+            <div key={cat.slug} className="mb-2">
               <div
                 className={`
-                  relative flex items-center gap-2 rounded-xl select-none caret-transparent
-                  transition-all duration-150 group
+                  relative flex items-center gap-2 rounded-2xl select-none caret-transparent
+                  transition-all duration-300 group overflow-hidden border
                   ${isAtiva
-                    ? 'bg-[#ff6b00]/15 text-white'
-                    : 'text-[#a0a0a0] hover:bg-[#1a1a1a] hover:text-white'}
+                    ? 'bg-[#1a1a1a] border-[#ff6b00]/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),_0_0_20px_rgba(255,107,0,0.1)]'
+                    : 'bg-transparent border-transparent hover:bg-[#151515] hover:border-white/5'}
                 `}
               >
-                {isAtiva && <div className="absolute left-0 w-0.5 h-6 bg-[#ff6b00] rounded-r-full" />}
+                {/* Indicador de Selecao Laterais */}
+                <div 
+                   className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-md transition-all duration-300 ${isAtiva ? 'bg-gradient-to-b from-[#ff822b] to-[#cc5600] opacity-100 shadow-[0_0_15px_#ff6a00]' : 'bg-white/20 opacity-0 group-hover:opacity-100 h-4'}`}
+                />
+                
+                {/* Glow de Fundo Hover */}
+                <div className={`absolute inset-0 bg-gradient-to-r from-[${cat.cor}]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none duration-500`}></div>
 
                 <button
                   type="button"
                   onClick={() => irParaCategoria(cat.slug, temSubs)}
-                  className="tap-safe flex min-w-0 flex-1 items-center gap-2.5 px-3 py-2.5 text-left"
+                  className="tap-safe flex min-w-0 flex-1 items-center gap-4 px-4 py-3.5 text-left group-hover:translate-x-1 transition-transform duration-300"
                 >
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all"
-                    style={{
-                      backgroundColor: isAtiva ? `${cat.cor}30` : `${cat.cor}15`,
-                      boxShadow: isAtiva ? `0 0 10px ${cat.cor}40` : 'none',
-                    }}
-                  >
-                    <Icone className="w-4 h-4" style={{ color: cat.cor }} />
+                  <div className="relative">
+                     {/* Orb/Glow Behind Icon */}
+                     {isAtiva && <div className="absolute inset-0 blur-md opacity-50 scale-150 rounded-full" style={{ backgroundColor: cat.cor }}></div>}
+                     
+                     <div
+                       className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110 relative z-10 shadow-inner"
+                       style={{
+                         background: isAtiva 
+                           ? `radial-gradient(circle at top left, ${cat.cor}50, ${cat.cor}10)`
+                           : `radial-gradient(circle at top left, rgba(255,255,255,0.1), rgba(255,255,255,0.02))`,
+                         border: `1px solid ${isAtiva ? cat.cor + '40' : 'rgba(255,255,255,0.05)'}`
+                       }}
+                     >
+                       <Icone 
+                         className="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] transition-all" 
+                         style={{ 
+                            color: isAtiva ? '#ffffff' : cat.cor,
+                            fill: isAtiva ? '#ffffff' : `${cat.cor}40`
+                         }} 
+                       />
+                     </div>
                   </div>
 
-                  <span className="flex-1 text-sm font-semibold truncate">{cat.nome}</span>
+                  <span className={`flex-1 text-[13px] font-bold tracking-wide truncate transition-colors ${isAtiva ? 'text-white drop-shadow-md' : 'text-white/60 group-hover:text-white'}`}>
+                     {cat.nome}
+                  </span>
                 </button>
 
                 {temSubs ? (
@@ -177,34 +198,37 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
                     type="button"
                     aria-label={expandida ? `Recolher ${cat.nome}` : `Expandir ${cat.nome}`}
                     onClick={() => toggleExpandida(cat.slug)}
-                    className="tap-safe mr-1 p-1 rounded-md text-[#404040] hover:text-[#a0a0a0] hover:bg-[#202020] transition-colors"
+                    className="tap-safe mr-2 p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-colors relative z-20"
                   >
                     <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      className={`w-4 h-4 transition-transform duration-300 ${
                         expandida ? 'rotate-180' : ''
                       }`}
                     />
                   </button>
                 ) : (
-                  <span className="pr-3 text-[10px] text-[#404040] font-medium">
+                  <span className="pr-4 text-[10px] font-black tracking-widest text-[#ff6a00]/70 group-hover:text-[#ff6a00] transition-colors">
                     {cat.totalFigurinhas}
                   </span>
                 )}
               </div>
 
-              {temSubs && expandida && (
-                <div className="ml-6 mt-0.5 space-y-0.5 border-l border-[#2a2a2a] pl-3">
+              {/* Subcategorias Premium */}
+              <div 
+                 className={`overflow-hidden transition-all duration-300 ease-in-out ${temSubs && expandida ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'}`}
+              >
+                <div className="ml-9 border-l-2 border-[#1a1a1a] pl-2 space-y-1 relative before:content-[''] before:absolute before:top-0 before:-left-[2px] before:w-[2px] before:h-8 before:bg-gradient-to-b before:from-[#ff6a00]/50 before:to-transparent">
                   <button
                     type="button"
                     onClick={() => irParaCategoria(cat.slug)}
                     className={`
-                      tap-safe w-full text-left flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs transition-colors select-none caret-transparent
+                      tap-safe w-full text-left flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all select-none caret-transparent hover:translate-x-1
                       ${isAtiva && !subcategoriaAtiva
-                        ? 'text-[#ff6b00] font-semibold'
-                        : 'text-[#606060] hover:text-[#a0a0a0]'}
+                        ? 'text-[#ff6a00] drop-shadow-sm'
+                        : 'text-white/40 hover:text-white'}
                     `}
                   >
-                    <span>Todos</span>
+                    <span>Ver Todo o Arsenal</span>
                   </button>
 
                   {cat.subcategorias.map((sub) => {
@@ -216,48 +240,51 @@ export default function Sidebar({ categorias, aberta, onFechar, usuario }: Sideb
                         type="button"
                         onClick={() => irParaSubcategoria(cat.slug, sub.slug)}
                         className={`
-                          tap-safe w-full text-left flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-xs transition-all select-none caret-transparent
+                          tap-safe w-full text-left flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all select-none caret-transparent hover:translate-x-1
                           ${isSubAtiva
-                            ? 'text-[#ff6b00] font-semibold bg-[#ff6b00]/10'
-                            : 'text-[#606060] hover:text-[#a0a0a0] hover:bg-[#1a1a1a]'}
+                            ? 'text-white bg-gradient-to-r from-white/10 to-transparent border border-white/5 shadow-inner'
+                            : 'text-white/40 hover:text-white hover:bg-[#1a1a1a]'}
                         `}
                       >
                         <span className="truncate">{sub.nome}</span>
-                        <span className="text-[#404040] text-[10px] flex-shrink-0">
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full ${isSubAtiva ? 'bg-[#ff6a00] text-black font-black' : 'bg-[#1a1a1a] text-white/30'}`}>
                           {sub.totalFigurinhas}
                         </span>
                       </button>
                     );
                   })}
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
       </nav>
 
-      {/* Rodape com perfil e logout */}
-      <div className="border-t border-[#1a1a1a] p-3 space-y-1">
+      {/* Rodape com perfil e logout Otimizado/Premium */}
+      <div className="p-4 space-y-2 bg-gradient-to-t from-[#050505] to-transparent">
         <Link
           href="/perfil"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#a0a0a0] hover:text-white hover:bg-[#1a1a1a] transition-all group"
+          className="relative flex items-center gap-4 px-4 py-3 rounded-2xl border border-white/5 bg-[#111] shadow-[0_10px_20px_rgba(0,0,0,0.4),_inset_0_1px_1px_rgba(255,255,255,0.05)] hover:border-[#ff6a00]/30 hover:bg-[#151515] hover:-translate-y-1 transition-all group overflow-hidden"
         >
-          <div className="w-8 h-8 bg-[#1a1a1a] border border-[#2a2a2a] group-hover:border-[#ff6b00]/40 rounded-full flex items-center justify-center flex-shrink-0 transition-colors">
-            <User className="w-4 h-4" />
+          {/* Orb Back */}
+          <div className="absolute top-0 right-0 w-20 h-20 bg-[#ff6a00]/10 blur-[30px] rounded-full pointer-events-none group-hover:bg-[#ff6a00]/20 transition-colors"></div>
+          
+          <div className="w-10 h-10 bg-gradient-to-b from-[#222] to-[#111] shadow-inner border border-white/10 group-hover:border-[#ff6b00]/60 rounded-full flex items-center justify-center flex-shrink-0 transition-colors relative z-10">
+            <User className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="var(--tw-colors-white)/0.2" />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold truncate text-white">{usuario?.nome || 'Meu Perfil'}</p>
-            <p className="text-[10px] text-[#404040] truncate">{usuario?.email || ''}</p>
+          <div className="flex-1 min-w-0 relative z-10">
+            <p className="text-sm font-black tracking-tight truncate text-white group-hover:text-[#ff6a00] transition-colors">{usuario?.nome || 'Meu Perfil'}</p>
+            <p className="text-[10px] text-white/40 uppercase tracking-widest truncate">{usuario?.email || ''}</p>
           </div>
         </Link>
 
         <button
           type="button"
           onClick={handleLogout}
-          className="tap-safe w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#606060] hover:text-red-400 hover:bg-red-500/10 transition-all"
+          className="tap-safe w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-red-500/10 text-[#606060] hover:text-red-400 hover:bg-gradient-to-r hover:from-red-500/10 hover:to-transparent transition-all group"
         >
-          <LogOut className="w-4 h-4 flex-shrink-0" />
-          <span className="text-sm font-medium">Sair</span>
+          <LogOut className="w-4 h-4 flex-shrink-0 group-hover:scale-110 transition-transform" />
+          <span className="text-[11px] font-black uppercase tracking-widest relative">Encerrar Sessão</span>
         </button>
       </div>
     </aside>
