@@ -9,6 +9,58 @@ import {
    Camera, TrendingUp, Users, Copy, DownloadCloud, MonitorSmartphone, Eye, MousePointerClick, DollarSign
 } from 'lucide-react';
 
+// Componente isolado do Slider Premium contínuo
+const VitrineSlider = () => (
+   <div className="relative w-full overflow-hidden flex flex-col gap-1 md:gap-2 py-4 group-wrapper-hover">
+      {/* Sombras Laterais para Fade contínuo (Deep Black) */}
+      <div className="absolute inset-y-0 left-0 w-24 md:w-64 bg-gradient-to-r from-[#030303] via-[#030303]/90 to-transparent z-20 pointer-events-none"></div>
+      <div className="absolute inset-y-0 right-0 w-24 md:w-64 bg-gradient-to-l from-[#030303] via-[#030303]/90 to-transparent z-20 pointer-events-none"></div>
+
+      {/* FILEIRA 1 -> Direita (animada pelo `marquee`) */}
+      {/* Velocidade controlada livremente. A lógica do blur alternante aplica-se às .row-blur-a / b. Hover reduz velocidade suavemente no Tailwind 3 com CSS custom via group. */}
+      <div className="row-blur-a flex w-max shrink-0 animate-marquee items-center gap-6 md:gap-10 pl-6 transition-all duration-300">
+         {/* Duplicando o array para o loop infinito ser perfeito */}
+         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num, i) => (
+            <motion.div
+               whileHover={{ scale: 1.1, zIndex: 30 }}
+               key={`row1-${num}-${i}`}
+               className="h-20 md:h-44 shrink-0 flex items-center justify-center relative group cursor-pointer"
+            >
+               {/* Core Glow Hover */}
+               <div className="absolute inset-0 bg-[#ff6a00]/0 group-hover:bg-[#ff6a00]/20 blur-2xl rounded-full transition-all duration-500 pointer-events-none"></div>
+               
+               <img
+                  src={`/img/fig (${num}).png`}
+                  alt={`Figurinha Premium ${num}`}
+                  className="w-auto h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)] group-hover:drop-shadow-[0_0_20px_rgba(255,106,0,0.4)] transition-all duration-500 transform-gpu relative z-10"
+               />
+            </motion.div>
+         ))}
+      </div>
+
+      {/* FILEIRA 2 <- Esquerda (animada pelo `marquee-reverse`) */}
+      <div className="row-blur-b flex w-max shrink-0 animate-marquee-reverse items-center gap-6 md:gap-10 pr-6 pt-1 md:pt-2 transition-all duration-300">
+         {/* Duplicando o array para o loop infinito ser perfeito */}
+         {[10, 11, 12, 13, 14, 15, 16, 17, 18, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((num, i) => (
+            <motion.div
+               whileHover={{ scale: 1.1, zIndex: 30 }}
+               key={`row2-${num}-${i}`}
+               className="h-20 md:h-44 shrink-0 flex items-center justify-center relative group cursor-pointer"
+            >
+               {/* Core Glow Hover Diferênciado */}
+               <div className="absolute inset-0 bg-[#ffb15c]/0 group-hover:bg-[#ffb15c]/10 blur-2xl rounded-full transition-all duration-500 pointer-events-none"></div>
+               
+               <img
+                  src={`/img/fig (${num}).png`}
+                  alt={`Figurinha Premium ${num}`}
+                  className="w-auto h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)] group-hover:drop-shadow-[0_0_20px_rgba(255,177,92,0.3)] transition-all duration-500 transform-gpu relative z-10"
+               />
+            </motion.div>
+         ))}
+      </div>
+   </div>
+);
+
 // Reusable cinematic scroll animation
 const FadeIn = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
    <motion.div
@@ -238,6 +290,13 @@ export default function LandingPage() {
                   </motion.div>
                </FadeIn>
             </div>
+         </section>
+
+         {/* ------------------------------------------------------------- */}
+         {/* 1.4 VITRINE PRIMÁRIA (Duplicada para peso visual forte em cima) */}
+         {/* ------------------------------------------------------------- */}
+         <section className="pt-20 pb-10 bg-[#030303] overflow-hidden relative">
+             <VitrineSlider />
          </section>
 
          {/* ------------------------------------------------------------- */}
@@ -563,113 +622,49 @@ export default function LandingPage() {
                               </div>
                            </section>
          {/* ------------------------------------------------------------- */}
-         {/* 4. PARA QUEM É (Premium Card Grids)                             */}
-         {/* ------------------------------------------------------------- */}
-         <section className="py-40 bg-[#0b0b0b]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-               <FadeIn className="text-center mb-24">
-                  <h2 className="text-4xl md:text-5xl lg:text-7xl font-black tracking-tighter text-white">
-                     Engenharia visual para a <br /><span className="text-[#ff6a00] drop-shadow-lg">linha de frente.</span>
-                  </h2>
-                  <p className="mt-8 text-xl md:text-2xl text-white/50 font-light max-w-3xl mx-auto leading-relaxed">
-                     Nenhuma peça solta no sistema stikz é aleatória. É o cérebro das maiores agências faturadoras em formato compactado.
-                  </p>
-               </FadeIn>
-
-               <div className="grid md:grid-cols-2 gap-10 max-w-6xl mx-auto">
-                  {[
-                     {
-                        icon: <Trophy className="w-8 h-8 text-[#ff6a00]" />,
-                        id: "Lojistas Físicos & E-commerce",
-                        label: "Aparência Intocável",
-                        text: "Lojas de roupas, eletrônicos ou vitrines online. Transforme fotos simples de produtos em anúncios de alto padrão que convertem muito mais rápido.",
-                        img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80",
-                        sticker: { top: "LANÇAMENTO", main: "NOVA COLEÇÃO" }
-                     },
-                     {
-                        icon: <Zap className="w-8 h-8 text-[#ff6a00]" />,
-                        id: "Infoprodutores Focados",
-                        label: "Estopim Cognitivo",
-                        text: "Gatilhos de alta conversão. Imponha escassez imediata na sua audiência no momento de aplicar picos de venda do seu fechamento de carrinho.",
-                        img: "https://images.unsplash.com/photo-1551818255-e6e10975bc17?auto=format&fit=crop&q=80",
-                        sticker: { top: "SÓ HOJE", main: "ÚLTIMAS VAGAS" }
-                     },
-                     {
-                        icon: <Users className="w-8 h-8 text-[#ff6a00]" />,
-                        id: "Serviços Corporativos",
-                        label: "Percepção de Valor",
-                        text: "Dentistas, arquitetos, advogados. Eleve a apresentação do seu serviço a um padrão classe A que justifica imediatamente o recebimento de valores altos.",
-                        img: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80",
-                        sticker: { top: "CONSULTAS", main: "AGENDA ABERTA" }
-                     },
-                     {
-                        icon: <Camera className="w-8 h-8 text-[#ff6a00]" />,
-                        id: "Criadores e Influenciadores",
-                        label: "Chancela Gráfica",
-                        text: "Mostre o tamanho real da sua autoridade online para marcas e parceiros comerciais transformando publicações normais em mídias valiosas.",
-                        img: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80",
-                        sticker: { top: "PUB", main: "PARCERIA" }
-                     }
-                  ].map((card, idx) => (
-                     <FadeIn key={idx} delay={idx * 0.15}>
-                        <motion.div
-                           whileHover={{ y: -8, transition: { duration: 0.4 } }}
-                           className="relative bg-gradient-to-br from-[#181818] to-[#0a0a0a] p-10 md:p-12 rounded-[3.5rem] border border-white/[0.06] overflow-hidden group shadow-[0_40px_80px_rgba(0,0,0,0.8),_inset_0_1px_2px_rgba(255,255,255,0.05)] backdrop-blur-2xl h-full flex flex-col justify-between"
-                        >
-                           <div className="absolute inset-0 bg-gradient-to-br from-[#ff6a00]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                           <div className="absolute inset-0 rounded-[3.5rem] shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] pointer-events-none"></div>
-
-                           <div className="relative z-10 flex flex-col gap-6 mb-8">
-                              <div className="w-16 h-16 rounded-t-[1.5rem] rounded-b-[0.5rem] rounded-bl-[1.5rem] bg-gradient-to-br from-white/[0.04] to-transparent flex items-center justify-center border border-white/5 group-hover:bg-white/[0.06] transition-colors relative shadow-inner">
-                                 <div className="absolute inset-0 rounded-[inherit] bg-[#ff6a00]/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                 {card.icon}
-                              </div>
-                              <div>
-                                 <h3 className="font-extrabold text-2xl md:text-3xl tracking-tight text-white mb-2">{card.id}</h3>
-                                 <div className="inline-block bg-[#ff6a00]/10 border border-[#ff6a00]/20 text-[#ff6a00] font-bold text-[9px] uppercase tracking-[0.2em] px-3 py-1 rounded-full mb-4 relative">
-                                    {card.label}
-                                 </div>
-                                 <p className="text-white/50 text-base md:text-lg font-light leading-[1.7]">{card.text}</p>
-                              </div>
-                           </div>
-
-                           {/* PROVA VISUAL PRÁTICA DENTRO DO CARD */}
-                           <div className="w-full h-[220px] rounded-[2rem] overflow-hidden relative shadow-[inner_0_0_20px_rgba(0,0,0,0.8)] border border-white/5 bg-[#050505] mt-auto">
-                              {/* Background Imagem Real */}
-                              <img src={card.img} alt={card.id} className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity grayscale-[30%] group-hover:grayscale-0 group-hover:opacity-80 transition-all duration-700" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                              
-                              {/* Elemento de UI: Instagram Simulado no topo */}
-                              <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10 opacity-60">
-                                 <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-md"></div>
-                                    <div className="w-16 h-1.5 bg-white/30 rounded-full"></div>
-                                 </div>
-                              </div>
-
-                              {/* STIKER: Aplicação simulada na prática */}
-                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                 <motion.div 
-                                    className="bg-black/70 backdrop-blur-xl px-5 py-3 border border-white/10 rounded-2xl transform -rotate-3 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-500 shadow-[0_20px_40px_rgba(0,0,0,0.8)] flex flex-col items-center"
-                                 >
-                                    <div className="bg-[#ff6a00] text-black text-[8px] uppercase font-black px-2 py-0.5 rounded-sm mb-1">{card.sticker.top}</div>
-                                    <span className="text-white font-black text-xl md:text-2xl uppercase tracking-tighter drop-shadow-xl text-center leading-none">
-                                       {card.sticker.main}
-                                    </span>
-                                 </motion.div>
-                              </div>
-                           </div>
-                        </motion.div>
-                     </FadeIn>
-                  ))}
-               </div>
-            </div>
-         </section>
-
-         {/* ------------------------------------------------------------- */}
          {/* 5. A BIBLIOTECA (Vitrine Premium Dupla)                         */}
          {/* ------------------------------------------------------------- */}
-         <section className="pt-32 pb-44 bg-[#030303] overflow-hidden relative border-y border-white/[0.02]">
+         <section className="pt-32 pb-44 bg-[#030303] overflow-hidden relative border-y border-white/[0.02] group/carousel-wrapper">
+            <style dangerouslySetInnerHTML={{__html: `
+               @keyframes rowFocusA {
+                 0%, 35% { filter: blur(0px) drop-shadow(0 0 0 rgba(0,0,0,0)); opacity: 1; }
+                 45%, 85% { filter: blur(3px) drop-shadow(0 0 10px rgba(0,0,0,0.8)); opacity: 0.5; }
+                 100% { filter: blur(0px) drop-shadow(0 0 0 rgba(0,0,0,0)); opacity: 1; }
+               }
+               @keyframes rowFocusB {
+                 0%, 35% { filter: blur(3px) drop-shadow(0 0 10px rgba(0,0,0,0.8)); opacity: 0.5; }
+                 45%, 85% { filter: blur(0px) drop-shadow(0 0 0 rgba(0,0,0,0)); opacity: 1; }
+                 100% { filter: blur(3px) drop-shadow(0 0 10px rgba(0,0,0,0.8)); opacity: 0.5; }
+               }
+               .row-blur-a { 
+                  animation: rowFocusA 8s infinite ease-in-out; 
+                  will-change: filter, opacity;
+               }
+               .row-blur-b { 
+                  animation: rowFocusB 8s infinite ease-in-out; 
+                  will-change: filter, opacity;
+               }
+               
+               /* Controlar o Blur no Hover Opcional */
+               .group-wrapper-hover:hover .row-blur-a,
+               .group-wrapper-hover:hover .row-blur-b {
+                  animation-name: none;
+                  filter: blur(0px) !important;
+                  opacity: 1 !important;
+                  transition: filter 0.8s ease, opacity 0.8s ease;
+               }
+
+               /* Para "deixar a animação de carrossel passando sem parar, e ao passar mouse continua rodando DEVAGAR" usamos um truque no play-state ou um pequeno truque de escala no Tailwind global. */
+               /* O Tailwind nativo usa \`animate-marquee\`. Se aumentamos a duração \`animation-duration: 60s\` ele roda devagar, mas pode causar 'jump' no Chrome. */
+               /* A forma orgânica recomendada pra "devagar" sem pause (em CSS puro moderno sem JS jumps) é multiplicar a duration */
+               .group-wrapper-hover:hover .animate-marquee {
+                  animation-duration: 50s !important;
+               }
+               .group-wrapper-hover:hover .animate-marquee-reverse {
+                  animation-duration: 50s !important;
+               }
+            `}} />
+
             {/* Luz de Separação Superior/Inferior Cinematográfica */}
             <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-[#ff6a00]/30 to-transparent"></div>
             <div className="absolute bottom-0 w-full h-px bg-gradient-to-r from-transparent via-[#ff6a00]/30 to-transparent"></div>
@@ -678,7 +673,7 @@ export default function LandingPage() {
             <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] bg-[#ff6a00]/[0.02] rounded-full blur-[120px] pointer-events-none"></div>
             <div className="absolute bottom-[20%] right-[10%] w-[600px] h-[600px] bg-[#ff9d2e]/[0.02] rounded-full blur-[150px] pointer-events-none"></div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center mb-24">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center mb-14 md:mb-20">
                <FadeIn>
                   <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/[0.02] border border-white/[0.05] text-white/60 font-bold text-xs uppercase tracking-[0.25em] mb-8 backdrop-blur-md">
                      <div className="w-1.5 h-1.5 rounded-full bg-[#ff6a00] shadow-[0_0_8px_#ff6a00] animate-pulse"></div>
@@ -693,88 +688,8 @@ export default function LandingPage() {
                </FadeIn>
             </div>
 
-            <div className="relative w-full overflow-hidden flex flex-col gap-6 md:gap-8 py-4">
-               {/* Sombras Laterais para Fade contínuo (Deep Black) */}
-               <div className="absolute inset-y-0 left-0 w-24 md:w-64 bg-gradient-to-r from-[#030303] via-[#030303]/80 to-transparent z-20 pointer-events-none"></div>
-               <div className="absolute inset-y-0 right-0 w-24 md:w-64 bg-gradient-to-l from-[#030303] via-[#030303]/80 to-transparent z-20 pointer-events-none"></div>
-
-               {/* FILEIRA 1 -> Direita (animada pelo `marquee`) */}
-               <div className="flex w-max shrink-0 animate-marquee hover:[animation-play-state:paused] items-center gap-6 md:gap-8 pl-8 transition-all duration-300">
-                  {[...Array(12)].map((_, i) => (
-                     <motion.div
-                        whileHover={{ scale: 1.05, y: -5, zIndex: 30 }}
-                        key={`row1-${i}`}
-                        className="w-48 h-56 md:w-72 md:h-80 shrink-0 bg-[#0a0a0a] rounded-3xl md:rounded-[2.5rem] border border-white/[0.04] p-4 flex flex-col justify-end shadow-[0_20px_40px_rgba(0,0,0,0.8)] relative overflow-hidden group cursor-pointer"
-                     >
-                        {/* Glow interno no hover */}
-                        <div className="absolute inset-0 bg-[#ff6a00]/[0.05] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#ff6a00]/20 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-
-                        {/* Imagem Placeholder Stikz (Fundo escuro/Asset clean) */}
-                        <div className="absolute inset-x-4 top-4 bottom-24 rounded-[2rem] bg-[#111] overflow-hidden border border-white/[0.02] shadow-inner flex items-center justify-center p-4">
-                           <img
-                              src={`https://images.unsplash.com/photo-${i % 2 === 0 ? '1628260412297-1ecce342c8d2' : '1557683316-973673baf926'}?auto=format&fit=crop&q=80`}
-                              alt="Stikz Asset"
-                              className="w-full h-full object-cover rounded-xl opacity-60 mix-blend-screen group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-110 ease-out"
-                           />
-                           {/* Overlay simulando a figurinha real cortada */}
-                           <div className="absolute bg-white text-black font-black text-xs md:text-sm px-4 py-2 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5)] transform -rotate-6 group-hover:rotate-0 transition-transform duration-500">
-                              {i % 2 === 0 ? 'GARANTA JÁ' : 'NOVIDADE'}
-                           </div>
-                        </div>
-
-                        {/* Meta info da figurinha */}
-                        <div className="relative z-10 w-full flex justify-between items-center px-2">
-                           <div className="flex flex-col">
-                              <span className="text-white/90 font-bold text-sm md:text-md tracking-tight">Pack #{24 + i}</span>
-                              <span className="text-white/30 text-[10px] md:text-xs font-medium uppercase tracking-widest">Urgência</span>
-                           </div>
-                           <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-[#ff6a00] group-hover:border-[#ff6a00] transition-colors">
-                              <ArrowRight className="w-3 h-3 text-white/50 group-hover:text-white transition-colors" />
-                           </div>
-                        </div>
-                     </motion.div>
-                  ))}
-               </div>
-
-               {/* FILEIRA 2 <- Esquerda (animada pelo `marquee-reverse`) */}
-               <div className="flex w-max shrink-0 animate-marquee-reverse hover:[animation-play-state:paused] items-center gap-6 md:gap-8 pr-8 transition-all duration-300">
-                  {[...Array(12)].map((_, i) => (
-                     <motion.div
-                        whileHover={{ scale: 1.05, y: -5, zIndex: 30 }}
-                        key={`row2-${i}`}
-                        className="w-48 h-56 md:w-72 md:h-80 shrink-0 bg-[#0a0a0a] rounded-3xl md:rounded-[2.5rem] border border-white/[0.04] p-4 flex flex-col justify-end shadow-[0_20px_40px_rgba(0,0,0,0.8)] relative overflow-hidden group cursor-pointer"
-                     >
-                        {/* Glow interno no hover sutilmente diferente pra não saturar */}
-                        <div className="absolute inset-0 bg-[#ff9d2e]/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        <div className="absolute top-0 right-0 w-[150%] h-full bg-gradient-to-r from-transparent via-white/[0.05] to-transparent skew-x-[-30deg] -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out"></div>
-
-                        {/* Imagem Placeholder Stikz */}
-                        <div className="absolute inset-x-4 top-4 bottom-24 rounded-[2rem] bg-[#111] overflow-hidden border border-white/[0.02] shadow-inner flex items-center justify-center p-4">
-                           <img
-                              src={`https://images.unsplash.com/photo-${i % 2 === 0 ? '1618005182384-a83a8bd57fbe' : '1550684848-fac1c5b4e853'}?auto=format&fit=crop&q=80`}
-                              alt="Stikz Asset"
-                              className="w-full h-full object-cover rounded-xl opacity-60 mix-blend-screen grayscale-[50%] group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110 ease-out"
-                           />
-                           <div className="absolute bg-[#ff6a00] text-white font-black text-xs md:text-sm px-4 py-2 rounded-xl shadow-[0_10px_30px_rgba(255,106,0,0.5)] transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                              {i % 2 === 0 ? 'ÚLTIMAS VAGAS' : 'PROMO 50%'}
-                           </div>
-                        </div>
-
-                        {/* Meta info da figurinha */}
-                        <div className="relative z-10 w-full flex justify-between items-center px-2">
-                           <div className="flex flex-col text-left">
-                              <span className="text-white/90 font-bold text-sm md:text-md tracking-tight">Pack #{48 + i}</span>
-                              <span className="text-white/30 text-[10px] md:text-xs font-medium uppercase tracking-widest">Escassez</span>
-                           </div>
-                           <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-[#ff6a00] group-hover:border-[#ff6a00] transition-colors">
-                              <ArrowRight className="w-3 h-3 text-white/50 group-hover:text-white transition-colors" />
-                           </div>
-                        </div>
-                     </motion.div>
-                  ))}
-               </div>
-            </div>
+            {/* Aplicando o componente isolado */}
+            <VitrineSlider />
          </section>
 
          {/* ------------------------------------------------------------- */}
