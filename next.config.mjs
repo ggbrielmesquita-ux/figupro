@@ -9,6 +9,14 @@ const nextConfig = {
         hostname: '**.supabase.co',
         pathname: '/storage/v1/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+      },
     ],
   },
   async headers() {
