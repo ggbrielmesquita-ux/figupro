@@ -1,1008 +1,937 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-   ArrowRight, CheckCircle2, Zap, Trophy, ShieldCheck,
-   ChevronDown, Star, MessageSquareQuote, Check,
-   Camera, TrendingUp, Users, Copy, DownloadCloud, MonitorSmartphone, Eye, MousePointerClick
+  AlignLeft,
+  ArrowRight,
+  Bike,
+  Car,
+  Check,
+  ChevronDown,
+  Clock,
+  Copy,
+  FolderOpen,
+  Gift,
+  Layers,
+  MessageCircle,
+  RefreshCw,
+  Scissors,
+  ShieldCheck,
+  ShoppingBag,
+  Smartphone,
+  Sparkles,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
 
-// Componente isolado do Slider Premium contínuo
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const CHECKOUT_URL = '/cadastro';
+
+const WHATSAPP_URL =
+  process.env.NEXT_PUBLIC_WHATSAPP_URL ??
+  'https://api.whatsapp.com/send?text=Oi%2C%20quero%20saber%20mais%20sobre%20as%20Figurinhas%20Premium';
+
 const stickerRows = {
-   top: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-   bottom: [10, 11, 12, 13, 14, 15, 16, 17, 18],
+  top: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+  bottom: [10, 11, 12, 13, 14, 15, 16, 17, 18],
 } as const;
 
+type CategoryCard = {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  color: string;
+};
+
+const categoryCards: readonly CategoryCard[] = [
+  { icon: Bike,        title: 'Grau de Moto',  description: 'Figurinhas para perfis de moto e grau',          color: '#ff8c00' },
+  { icon: MessageCircle, title: 'Interativas', description: 'Caixinhas, enquetes e engajamento',               color: '#ff6b00' },
+  { icon: Gift,        title: 'Rifas',          description: 'Selos, chamadas e urgência para rifeiros',        color: '#ffb86b' },
+  { icon: Scissors,    title: 'Barbearia',      description: 'Visual premium para barbeiros',                   color: '#ff8c00' },
+  { icon: ShoppingBag, title: 'Lojistas',       description: 'Promoções, preços e chamadas de venda',           color: '#ff6b00' },
+  { icon: Car,         title: 'Carros',          description: 'Figurinhas para perfis automotivos',              color: '#ffb86b' },
+  { icon: Layers,      title: 'Plataformas',    description: 'Pixbet, Sportingbet e outras',                    color: '#ff8c00' },
+  { icon: AlignLeft,   title: 'Frases',          description: 'Chamadas poderosas e textos de impacto',          color: '#ff6b00' },
+] as const;
+
+type BenefitCard = {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+};
+
+const benefitCards: readonly BenefitCard[] = [
+  { icon: FolderOpen,  title: 'Biblioteca por pastas',       description: 'Figurinhas organizadas em categorias para você achar o que precisa em segundos.' },
+  { icon: Copy,        title: 'Copiar em 2 cliques',         description: 'Clicou, copiou. Cole direto no seu Story do Instagram sem complicação.' },
+  { icon: RefreshCw,   title: 'Atualizações frequentes',     description: 'Novos packs adicionados regularmente para você nunca ficar desatualizado.' },
+  { icon: Smartphone,  title: 'Funciona no celular',          description: 'Otimizado para uso mobile. Abra no celular e use na hora.' },
+  { icon: Zap,         title: 'Acesso imediato',              description: 'Pagou, acessou. Sem esperar aprovação manual ou envio por e-mail.' },
+  { icon: TrendingUp,  title: 'Mais engajamento',             description: 'Stories com identidade visual geram mais respostas, cliques e vendas.' },
+] as const;
+
+type StepCard = {
+  step: string;
+  title: string;
+  description: string;
+};
+
+const howItWorksSteps: readonly StepCard[] = [
+  { step: '01', title: 'Entre na STIKZ',               description: 'Faça login no painel e escolha a categoria que combina com seu perfil ou campanha.' },
+  { step: '02', title: 'Escolha uma pasta',             description: 'Navegue pelas pastas organizadas: Rifas, Barbearia, Lojistas, Carros e muito mais.' },
+  { step: '03', title: 'Copie e cole no Instagram',     description: 'Clique em Copiar, abra o Instagram e cole a figurinha direto no seu Story.' },
+] as const;
+
+type FaqItem = {
+  q: string;
+  a: string;
+};
+
+const faqs: readonly FaqItem[] = [
+  { q: 'Como recebo o acesso?',                          a: 'Após o pagamento ser aprovado, seu acesso é liberado automaticamente. Você recebe os dados de login e já pode entrar no painel na mesma hora.' },
+  { q: 'Funciona no Instagram?',                         a: 'Sim. As figurinhas são imagens PNG otimizadas para Stories do Instagram. Basta copiar na STIKZ e colar no seu Story.' },
+  { q: 'Preciso instalar algum app?',                    a: 'Não. A STIKZ funciona 100% pelo navegador. Pode abrir no celular ou no computador, sem download.' },
+  { q: 'O pagamento libera automaticamente?',            a: 'Sim. Assim que o pagamento for confirmado, sua conta é ativada de forma automática, sem aprovação manual.' },
+  { q: 'Tem atualizações?',                              a: 'Sim. Novos packs são adicionados com frequência durante a vigência do seu acesso.' },
+  { q: 'Posso usar pelo celular?',                       a: 'Pode. O sistema é responsivo e foi pensado para quem usa o celular para criar conteúdo.' },
+  { q: 'As figurinhas são organizadas por categorias?',  a: 'Sim. Tudo está dividido por pastas: Grau de moto, Rifas, Barbearia, Lojistas, Carros, Plataformas e muito mais.' },
+] as const;
+
+// ─── Marquee ─────────────────────────────────────────────────────────────────
+
 type MarqueeTrackProps = {
-   items: readonly number[];
-   direction: 'left' | 'right';
-   tone: 'orange' | 'amber';
+  items: readonly number[];
+  direction: 'left' | 'right';
+  tone: 'orange' | 'amber';
 };
 
-const MarqueeTrack = ({ items, direction, tone }: MarqueeTrackProps) => {
-   const trackRef = useRef<HTMLDivElement>(null);
-   const groupRef = useRef<HTMLDivElement>(null);
-   const hoveringRef = useRef(false);
+function MarqueeTrack({ items, direction, tone }: MarqueeTrackProps) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const groupRef = useRef<HTMLDivElement>(null);
+  const hoveringRef = useRef(false);
 
-   useEffect(() => {
-      const track = trackRef.current;
-      const group = groupRef.current;
+  useEffect(() => {
+    const track = trackRef.current;
+    const group = groupRef.current;
+    if (!track || !group) return;
 
-      if (!track || !group) return;
+    const mobileQuery = window.matchMedia('(max-width: 767px)');
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const speedForScreen = () => {
+      const mobileSpeed = direction === 'right' ? 18 : 20;
+      const desktopSpeed = direction === 'right' ? 34 : 38;
+      const speed = mobileQuery.matches ? mobileSpeed : desktopSpeed;
+      return reducedMotionQuery.matches ? speed * 0.55 : speed;
+    };
 
-      const mobileQuery = window.matchMedia('(max-width: 767px)');
-      const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-      const speedForScreen = () => {
-         const mobileSpeed = direction === 'right' ? 18 : 20;
-         const desktopSpeed = direction === 'right' ? 34 : 38;
-         const speed = mobileQuery.matches ? mobileSpeed : desktopSpeed;
-         return reducedMotionQuery.matches ? speed * 0.55 : speed;
-      };
+    let groupWidth = group.scrollWidth;
+    let offset = direction === 'right' ? -groupWidth : 0;
+    let currentSpeed = speedForScreen();
+    let lastTime = performance.now();
+    let frame = 0;
 
-      let groupWidth = group.scrollWidth;
-      let offset = direction === 'right' ? -groupWidth : 0;
-      let currentSpeed = speedForScreen();
-      let lastTime = performance.now();
-      let frame = 0;
+    const measure = () => {
+      groupWidth = group.scrollWidth;
+      offset = direction === 'right' ? -groupWidth : 0;
+    };
 
-      const measure = () => {
-         groupWidth = group.scrollWidth;
-         offset = direction === 'right' ? -groupWidth : 0;
-      };
-
-      const animate = (time: number) => {
-         const deltaTime = Math.min((time - lastTime) / 1000, 0.05);
-         lastTime = time;
-
-         const normalSpeed = speedForScreen();
-         const targetSpeed = hoveringRef.current ? normalSpeed * 0.42 : normalSpeed;
-         currentSpeed += (targetSpeed - currentSpeed) * Math.min(deltaTime * 4, 1);
-
-         offset += currentSpeed * deltaTime * (direction === 'right' ? 1 : -1);
-
-         if (direction === 'right' && offset >= 0) offset -= groupWidth;
-         if (direction === 'left' && offset <= -groupWidth) offset += groupWidth;
-
-         track.style.transform = `translate3d(${offset}px, 0, 0)`;
-         frame = requestAnimationFrame(animate);
-      };
-
-      const resizeObserver = new ResizeObserver(measure);
-      resizeObserver.observe(group);
-      mobileQuery.addEventListener('change', measure);
-      reducedMotionQuery.addEventListener('change', measure);
-
-      measure();
+    const animate = (time: number) => {
+      const deltaTime = Math.min((time - lastTime) / 1000, 0.05);
+      lastTime = time;
+      const normalSpeed = speedForScreen();
+      const targetSpeed = hoveringRef.current ? normalSpeed * 0.42 : normalSpeed;
+      currentSpeed += (targetSpeed - currentSpeed) * Math.min(deltaTime * 4, 1);
+      offset += currentSpeed * deltaTime * (direction === 'right' ? 1 : -1);
+      if (direction === 'right' && offset >= 0) offset -= groupWidth;
+      if (direction === 'left' && offset <= -groupWidth) offset += groupWidth;
+      track.style.transform = `translate3d(${offset}px, 0, 0)`;
       frame = requestAnimationFrame(animate);
+    };
 
-      return () => {
-         cancelAnimationFrame(frame);
-         resizeObserver.disconnect();
-         mobileQuery.removeEventListener('change', measure);
-         reducedMotionQuery.removeEventListener('change', measure);
-      };
-   }, [direction]);
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(group);
+    mobileQuery.addEventListener('change', measure);
+    reducedMotionQuery.addEventListener('change', measure);
+    measure();
+    frame = requestAnimationFrame(animate);
 
-   return (
-      <div
-         className={`sticker-marquee-row sticker-marquee-row--${tone}`}
-         onPointerEnter={() => { hoveringRef.current = true; }}
-         onPointerLeave={() => { hoveringRef.current = false; }}
-      >
-         <div ref={trackRef} className="sticker-marquee-track">
-            {[0, 1].map((copy) => (
-               <div
-                  key={copy}
-                  ref={copy === 0 ? groupRef : undefined}
-                  className="sticker-marquee-group"
-                  aria-hidden={copy === 1}
-               >
-                  {items.map((num) => (
-                     <div className="sticker-tile" key={`${direction}-${copy}-${num}`}>
-                        <Image
-                           src={`/img/optimized/fig-${num}.webp`}
-                           alt={copy === 0 ? `Figurinha Premium ${num}` : ''}
-                           width={512}
-                           height={512}
-                           loading="lazy"
-                           decoding="async"
-                           draggable={false}
-                        />
-                     </div>
-                  ))}
-               </div>
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+      mobileQuery.removeEventListener('change', measure);
+      reducedMotionQuery.removeEventListener('change', measure);
+    };
+  }, [direction]);
+
+  return (
+    <div
+      className={`sticker-marquee-row sticker-marquee-row--${tone}`}
+      onPointerEnter={() => { hoveringRef.current = true; }}
+      onPointerLeave={() => { hoveringRef.current = false; }}
+    >
+      <div ref={trackRef} className="sticker-marquee-track">
+        {[0, 1].map((copy) => (
+          <div
+            key={copy}
+            ref={copy === 0 ? groupRef : undefined}
+            className="sticker-marquee-group"
+            aria-hidden={copy === 1}
+          >
+            {items.map((num) => (
+              <div className="sticker-tile" key={`${direction}-${copy}-${num}`}>
+                <Image
+                  src={`/img/optimized/fig-${num}.webp`}
+                  alt={copy === 0 ? `Figurinha Premium ${num}` : ''}
+                  width={512}
+                  height={512}
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                />
+              </div>
             ))}
-         </div>
+          </div>
+        ))}
       </div>
-   );
-};
-
-// Componente isolado da vitrine premium continua.
-const VitrineSlider = () => (
-   <div className="sticker-marquee">
-      <MarqueeTrack items={stickerRows.top} direction="right" tone="orange" />
-      <MarqueeTrack items={stickerRows.bottom} direction="left" tone="amber" />
-   </div>
-);
-// Reusable cinematic scroll animation
-const FadeIn = ({ children, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
-   <div className={className}>
-      {children}
-   </div>
-);
-
-export default function LandingPage() {
-   const [openFaq, setOpenFaq] = useState<number | null>(0);
-   const [mounted, setMounted] = useState(false);
-   const [isMobileHero, setIsMobileHero] = useState(false);
-
-   useEffect(() => {
-      setMounted(true);
-
-      const mediaQuery = window.matchMedia('(max-width: 639px)');
-      const updateHeroMode = () => setIsMobileHero(mediaQuery.matches);
-
-      updateHeroMode();
-      mediaQuery.addEventListener('change', updateHeroMode);
-
-      return () => mediaQuery.removeEventListener('change', updateHeroMode);
-   }, []);
-
-   const toggleFaq = (index: number) => {
-      setOpenFaq(openFaq === index ? null : index);
-   };
-
-   const faqs = [
-      {
-         q: "Como eu uso as figurinhas?",
-         a: "Acesse a biblioteca, escolha a peça visual que combina com o seu conteúdo, copie, cole no Story e publique."
-      },
-      {
-         q: "Funciona em quais plataformas?",
-         a: "Você pode usar no Instagram, WhatsApp, TikTok, Reels e em qualquer app que permita colar elementos visuais."
-      },
-      {
-         q: "As figurinhas são atualizadas?",
-         a: "Sim. Novas peças são adicionadas com frequência para manter a biblioteca atual, útil e alinhada ao que chama atenção nos Stories."
-      },
-      {
-         q: "Posso testar sem risco?",
-         a: "Sim. Você tem 7 dias para usar, avaliar e decidir com calma. Se não fizer sentido, devolvemos 100% do valor."
-      }
-   ];
-
-   if (!mounted) return null; // Previne hydration mismatch no framer motion blur
-
-   return (
-      <div className="min-h-screen w-screen max-w-[100vw] bg-[#0b0b0b] text-white selection:bg-[#ff6a00] selection:text-white font-sans overflow-x-hidden relative">
-
-         {/* 🔮 Efeitos Estilísticos Globais (Glows & Partículas Incorpóreas) */}
-         <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-            {/* Grid background sutil */}
-            <div className="absolute inset-0 texture-grid opacity-[0.02]"></div>
-            <div className="absolute top-0 left-0 w-full h-[50vh] bg-gradient-to-b from-[#ff6a00]/[0.03] to-transparent"></div>
-         </div>
-
-         {/* 🚀 Navbar Glassmorphism Ultra Premium */}
-         <nav className="fixed top-0 w-full z-50 bg-[#0b0b0b]/62 backdrop-blur-lg md:backdrop-blur-xl border-b border-white/[0.04] shadow-[0_10px_24px_rgba(0,0,0,0.42)]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-               <div className="flex justify-between h-20 sm:h-24 items-center">
-                  <Link href="/" className="flex items-center gap-3 group cursor-pointer">
-                     <motion.div
-                        whileHover={{ scale: 1.05, rotate: 5 }}
-                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#ff6a00] to-[#ff9d2e] flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),_0_0_16px_rgba(255,106,0,0.32)] transition-transform duration-200"
-                     >
-                        <span className="text-sm font-black leading-none text-white drop-shadow-md">Z</span>
-                     </motion.div>
-                     <span className="font-extrabold text-xl sm:text-2xl tracking-tighter text-white drop-shadow-lg">Stikz<span className="text-[#ff6a00]">.</span></span>
-                  </Link>
-                  <div className="flex items-center">
-                     <Link href="/cadastro" className="text-white/70 hover:text-white transition-colors font-bold text-xs sm:text-sm border border-[#ff6a00]/20 bg-[#ff6a00]/10 hover:bg-[#ff6a00]/15 px-4 sm:px-5 py-2 rounded-full backdrop-blur-md uppercase tracking-[0.12em]">
-                        Começar
-                     </Link>
-                  </div>
-               </div>
-            </div>
-         </nav>
-
-         {/* ------------------------------------------------------------- */}
-         {/* ⭐️ HERO SECTION MÁXIMA (Cinematográfica e Imersiva)           */}
-         {/* ------------------------------------------------------------- */}
-         <section className="relative w-full max-w-[100vw] pt-24 sm:pt-40 lg:pt-52 pb-20 sm:pb-28 lg:pb-40 flex flex-col items-center justify-center min-h-[92svh] z-10 overflow-hidden">
-
-            {/* LUZ DE FUNDO DO HERO & PARTÍCULAS (Composição Rica) */}
-            <div className="absolute inset-0 bg-[#0b0b0b] -z-20"></div>
-            <div className="absolute top-0 left-0 w-full h-[60vh] texture-speckle opacity-[0.12] mix-blend-screen pointer-events-none -z-10"></div>
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0b0b0b]/80 to-[#0b0b0b] pointer-events-none -z-10"></div>
-
-            {/* Core Glow Radial */}
-            <div className="absolute top-[5%] left-1/2 -translate-x-1/2 w-full max-w-[1100px] h-[520px] md:h-[700px] bg-[#ff6a00]/[0.07] rounded-full blur-[90px] md:blur-[160px] -z-10 pointer-events-none mix-blend-screen"></div>
-            <div className="absolute top-[32%] right-[-12%] w-[420px] h-[420px] md:w-[800px] md:h-[800px] bg-[#ff9d2e]/[0.035] rounded-full blur-[80px] md:blur-[130px] -z-10 mix-blend-screen"></div>
-
-            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center text-center">
-
-               {/* Label Glass Ultra Premium */}
-               <FadeIn delay={0.1}>
-                  <motion.div
-                     whileHover={{ scale: 1.05 }}
-                     className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 rounded-full bg-black/40 border border-white/[0.08] text-white/90 font-bold text-[9px] sm:text-[10px] md:text-sm uppercase tracking-[0.18em] sm:tracking-[0.25em] mb-5 sm:mb-10 md:mb-12 backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),_0_0_22px_rgba(255,106,0,0.16)] ring-1 ring-white/5 relative overflow-hidden"
-                  >
-                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#ff6a00]/10 to-transparent"></div>
-                     <div className="w-2 h-2 rounded-full bg-[#ff6a00] shadow-[0_0_10px_#ff6a00,0_0_20px_#ff6a00] animate-pulse"></div>
-                     Presença visual para Stories
-                  </motion.div>
-               </FadeIn>
-
-               {/* Headline Impactante e Direta */}
-               <FadeIn delay={0.2} className="relative w-full max-w-5xl">
-                  <h1 className="font-black tracking-tighter mb-4 sm:mb-8 text-white drop-shadow-2xl flex flex-col items-center leading-tight">
-                     <span className="text-[1.05rem] min-[390px]:text-lg sm:text-3xl md:text-4xl lg:text-5xl text-white/90 mb-2 max-w-[21rem] sm:max-w-4xl leading-[1.08]">
-                        Seus Stories passam<br className="sm:hidden" /> despercebidos.
-                     </span>
-                     <span className="text-[1.88rem] min-[390px]:text-[2.05rem] sm:text-5xl md:text-7xl lg:text-8xl leading-[0.95] relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#ff6a00] via-[#ff9d2e] to-[#ffb15c] pb-2 max-w-[21rem] sm:max-w-5xl">
-                        <span className="hidden sm:inline">Com as Figurinhas Premium, eles chamam atenção.</span>
-                        <span className="sm:hidden">Com as<br />Figurinhas<br />Premium,<br />eles chamam atenção.</span>
-                        {/* Curva luminosa leve */}
-                        <div className="absolute bottom-0 left-[10%] w-[80%] h-[4px] bg-gradient-to-r from-transparent via-[#ff6a00]/60 to-transparent blur-md rounded-full"></div>
-                        <div className="absolute bottom-[2px] left-[20%] w-[60%] h-[1px] bg-[#ffb15c]/50 rounded-full"></div>
-                     </span>
-                  </h1>
-               </FadeIn>
-
-               {/* Subheadline Direta (Benefício + Ação) */}
-               <FadeIn delay={0.3}>
-                  <p className="mt-0 sm:mt-2 text-[0.9rem] sm:text-lg md:text-xl text-white/60 max-w-[18rem] sm:max-w-3xl mx-auto mb-5 sm:mb-10 md:mb-12 leading-[1.55] md:leading-[1.8] font-light">
-                     Transforme qualquer publicação comum em um conteúdo visual que prende, destaca e eleva a percepção do seu perfil em segundos.
-                  </p>
-               </FadeIn>
-
-               {/* CTA Extremamente Iluminado (Scale + Glow) */}
-               <FadeIn delay={0.4}>
-                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="relative group mx-auto inline-block w-full max-w-[296px] min-[390px]:max-w-[318px] sm:max-w-none sm:w-auto">
-                     {/* Mega Glow Hover Effect */}
-                     <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-[#ff6a00] to-[#ff9d2e] rounded-full blur-lg sm:blur-xl opacity-35 sm:opacity-40 group-hover:opacity-65 transition-opacity duration-200 pointer-events-none"></div>
-                     <div className="absolute -inset-1 bg-white/20 rounded-full blur-sm opacity-0 group-hover:opacity-40 transition-opacity duration-200 pointer-events-none"></div>
-
-                     <Link href="/cadastro" className="relative flex items-center justify-center gap-2.5 sm:gap-4 bg-gradient-to-b from-[#ff832b] via-[#ff6a00] to-[#cc5600] border-t border-[#ffb15c]/50 border-b-2 border-black/50 text-white px-3 sm:px-10 py-3.5 sm:py-5 md:py-6 rounded-full font-black text-[0.7rem] min-[390px]:text-[0.76rem] sm:text-lg md:text-xl transition-[transform,opacity,box-shadow] duration-200 shadow-[inset_0_2px_4px_rgba(255,255,255,0.35),_0_16px_30px_rgba(0,0,0,0.5)] overflow-hidden">
-                        <div className="absolute inset-0 texture-sheen opacity-20 mix-blend-overlay"></div>
-
-                        {/* Brilho cruzando o botão */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-0 group-hover:opacity-25 transition-opacity duration-200 pointer-events-none"></div>
-
-                        <span className="relative z-10 tracking-[0.08em] sm:tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] whitespace-nowrap">Quero destacar meus Stories</span>
-                        <div className="relative z-10 bg-black/20 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)] shrink-0">
-                           <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:scale-105 transition-transform duration-200 text-white" />
-                        </div>
-                     </Link>
-                  </motion.div>
-               </FadeIn>
-
-               <FadeIn delay={0.5}>
-                  <p className="mt-6 sm:mt-8 text-white/50 text-[11px] sm:text-sm flex items-center gap-2 sm:gap-3 font-semibold uppercase tracking-[0.14em] sm:tracking-widest bg-black/30 w-max max-w-full mx-auto px-4 sm:px-5 py-2 rounded-full border border-white/5 backdrop-blur-md">
-                     <Zap className="w-4 h-4 text-[#ff6a00] drop-shadow-[0_0_8px_#ff6a00] fill-[#ff6a00]" /> Acesso imediato
-                  </p>
-               </FadeIn>
-
-               {/* 📱 Mockup Celular Hiper-Realista e Cênico */}
-               <FadeIn delay={0.55} className="mt-10 sm:mt-20 md:mt-28 relative w-full max-w-full flex justify-center perspective-[2000px] z-20">
-
-                  {/* Glow radial leve atrás do celular. */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[104%] max-w-[520px] h-[360px] md:h-[600px] bg-[#ff6a00]/[0.13] rounded-full blur-[55px] md:blur-[100px] -z-10 mix-blend-screen"></div>
-
-                  {/* Sombras Base Ultra Realistas conectando ao chão */}
-                  <div className="absolute -bottom-[28px] md:-bottom-[50px] w-[82%] max-w-[620px] h-[46px] md:h-[80px] bg-black blur-[28px] md:blur-[50px] rounded-[100%]"></div>
-                  <div className="absolute -bottom-[10px] md:-bottom-[20px] left-1/2 -translate-x-1/2 w-[58%] max-w-[360px] h-[20px] md:h-[30px] bg-black blur-[14px] md:blur-[20px] rounded-[100%]"></div>
-
-                  {/* 3D Wrapper */}
-                  <motion.div
-                     animate={{ y: [0, -10, 0] }}
-                     transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-                     className="w-[78vw] min-w-[260px] max-w-[304px] min-[390px]:max-w-[316px] sm:max-w-[360px] md:max-w-[440px] aspect-[9/19] rounded-[3rem] md:rounded-[4rem] bg-[#050505] border-[3px] md:border-[4px] border-[#2a2a2a] mobile-soft-shadow shadow-[-22px_36px_70px_rgba(0,0,0,0.82),_0_0_48px_rgba(255,106,0,0.18),_inset_0_4px_12px_rgba(255,255,255,0.08)] md:shadow-[-30px_50px_100px_rgba(0,0,0,0.9),_0_0_80px_rgba(255,106,0,0.25),_inset_0_5px_15px_rgba(255,255,255,0.1)] relative overflow-hidden flex flex-col pt-10 md:pt-14 px-5 md:px-8 ring-1 ring-white/10 origin-center"
-                     style={{
-                        rotateX: isMobileHero ? "4deg" : "12deg",
-                        rotateY: isMobileHero ? "0deg" : "-7deg",
-                        rotateZ: isMobileHero ? "0deg" : "5deg",
-                        transformStyle: "preserve-3d",
-                     }}
-                  >
-                     {/* Lateral do Celular (Efeito 3D borda direita) */}
-                     <div className="absolute top-0 right-0 w-4 h-full bg-gradient-to-r from-transparent to-white/10 mix-blend-screen pointer-events-none"></div>
-
-                     {/* Emulação do Notch Metálico */}
-                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-6 md:h-8 bg-[#111] rounded-b-3xl shadow-[inset_0_-2px_10px_rgba(0,0,0,0.8),_0_2px_5px_rgba(0,0,0,0.5)] border-b border-x border-[#333] z-50"></div>
-                     <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 md:w-16 h-1 md:h-1.5 bg-[#050505] rounded-full z-50"></div>
-
-                     {/* Gradiente Interno Tela Base */}
-                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#1c1c1c] to-[#0a0a0a] -z-10"></div>
-                     <div className="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-b from-white/10 to-transparent mix-blend-overlay"></div>
-
-                     {/* Header do story REALSITA */}
-                     <div className="flex items-center justify-between mb-5 md:mb-8 relative z-10 pt-1 md:pt-2 px-1">
-                        <div className="flex items-center gap-2 md:gap-3">
-                           <Image src="https://i.pravatar.cc/120?img=47" alt="Avatar" width={36} height={36} decoding="async" className="w-7 h-7 md:w-9 md:h-9 rounded-full object-cover border border-white/20 shadow-md" />
-                           <div className="flex flex-col">
-                              <span className="text-white text-[10px] md:text-xs font-semibold drop-shadow-md">@gabriel.daily</span>
-                              <span className="text-white/50 text-[8px] md:text-[9px] drop-shadow-md">3 h</span>
-                           </div>
-                        </div>
-                        <div className="flex gap-1">
-                           <div className="w-1 h-1 bg-white/80 rounded-full"></div>
-                           <div className="w-1 h-1 bg-white/80 rounded-full"></div>
-                           <div className="w-1 h-1 bg-white/80 rounded-full"></div>
-                        </div>
-                     </div>
-
-                     {/* Tela Rica Stikz Aplicada - Contexto LIFESTYLE NEUTRO */}
-                     <div className="flex-1 bg-[#111] rounded-[2rem] md:rounded-[2.5rem] border border-white/10 flex flex-col items-center justify-between pb-5 md:pb-8 relative overflow-hidden group mb-6 md:mb-10 shadow-[inset_0_0_34px_rgba(0,0,0,0.75)]">
-                        <Image src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=640&q=72" alt="Contexto Lifestyle Coffee" width={640} height={960} decoding="async" className="absolute inset-0 w-full h-full object-cover opacity-80" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40"></div>
-
-                        {/* Top Spacer */}
-                        <div></div>
-
-                        {/* Sticker Hiper Imersivo Aplicado no Story */}
-                        <motion.div
-                           initial={{ scale: 0.8, rotate: -6, opacity: 0 }}
-                           animate={{ scale: 1, rotate: -2, opacity: 1 }}
-                           transition={{ delay: 1.5, type: "spring", stiffness: 120, damping: 10 }}
-                           className="bg-black/80 p-3 md:p-5 rounded-2xl shadow-[0_14px_28px_rgba(0,0,0,0.72),_0_0_22px_rgba(255,106,0,0.32),_inset_0_2px_2px_rgba(255,255,255,0.18)] backdrop-blur-md md:backdrop-blur-xl relative z-10 transform-gpu flex flex-col items-center"
-                        >
-                           <div className="bg-[#ff6a00] text-black text-[8px] md:text-[10px] uppercase font-black tracking-widest px-2 md:px-3 py-1 rounded-sm mb-2 transform -skew-x-12">Presença</div>
-                           <span className="text-white font-black text-2xl md:text-3xl uppercase tracking-tighter leading-[0.9] block drop-shadow-2xl text-center">
-                              Visual<br/><span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-[#aaa]">Premium</span>
-                           </span>
-                        </motion.div>
-                     </div>
-
-                     {/* Reflexo Tela (Glass Specular Highlight superior esquerdo) */}
-                     <div className="absolute -top-10 -left-10 w-[70%] h-[150%] bg-gradient-to-r from-white/30 to-transparent skew-x-[-30deg] opacity-20 pointer-events-none mix-blend-overlay"></div>
-                  </motion.div>
-               </FadeIn>
-            </div>
-         </section>
-
-         {/* ------------------------------------------------------------- */}
-         {/* 1.4 VITRINE PRIMÁRIA (Duplicada para peso visual forte em cima) */}
-         {/* ------------------------------------------------------------- */}
-         <section className="pt-8 sm:pt-14 md:pt-20 pb-4 md:pb-10 bg-[#030303] overflow-hidden relative">
-             <VitrineSlider />
-         </section>
-
-         {/* ------------------------------------------------------------- */}
-         {/* 1.5 PROVA VISUAL DE IMPACTO (Antes vs Depois)                   */}
-         {/* ------------------------------------------------------------- */}
-         <section className="py-20 md:py-32 relative z-10 bg-[#050505] overflow-hidden">
-            {/* Transição suave do Hero para cá (Fade do preto pro escuro) */}
-            <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-[#0b0b0b] to-transparent"></div>
-
-            {/* Luz de Fundo da Seção */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[900px] h-[320px] md:h-[400px] bg-[#ff6a00]/[0.03] rounded-full blur-[70px] md:blur-[120px] pointer-events-none"></div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-               <FadeIn>
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-5 md:mb-6 tracking-tighter text-white leading-tight">
-                     A diferença está em <span className="text-[#ff6a00] drop-shadow-[0_0_15px_rgba(255,106,0,0.5)]">como você apresenta.</span>
-                  </h2>
-                  <p className="text-base sm:text-lg md:text-2xl text-white/50 mb-12 md:mb-20 max-w-2xl mx-auto font-light leading-relaxed">
-                     Antes: Stories comuns, ignorados. Depois: Stories com presença, destaque e impacto.
-                  </p>
-               </FadeIn>
-
-               <div className="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-24 max-w-5xl mx-auto relative perspective-1000">
-
-                  {/* ------------------------ ANTES (Sem stikz) ------------------------ */}
-                  <FadeIn delay={0.2} className="relative flex flex-col items-center w-full lg:w-auto">
-                     <div className="mb-8 bg-[#111] border border-white/10 text-white/40 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-[0.25em]">
-                        Antes: comum
-                     </div>
-
-                     <div className="w-full max-w-[300px] aspect-[9/19] rounded-[3rem] bg-[#0f0f0f] border-4 border-[#1a1a1a] shadow-[0_20px_40px_rgba(0,0,0,0.8)] relative overflow-hidden flex flex-col px-5 pt-10 ring-1 ring-white/5 opacity-80 filter grayscale-[30%]">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-6 bg-[#1a1a1a] rounded-b-2xl"></div>
-                        <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-b from-black/50 to-transparent mix-blend-overlay"></div>
-
-                        <div className="flex items-center justify-between mb-4 relative z-10 pt-2 px-1">
-                           <div className="flex items-center gap-2">
-                              <Image src="https://i.pravatar.cc/120?img=33" alt="Avatar" width={28} height={28} loading="lazy" decoding="async" className="w-7 h-7 rounded-full object-cover border border-white/20 shadow-md" />
-                              <div className="flex flex-col">
-                                 <span className="text-white text-[10px] font-semibold drop-shadow-md">@tech.imports</span>
-                                 <span className="text-white/50 text-[8px] drop-shadow-md">5 h</span>
-                              </div>
-                           </div>
-                           <div className="flex gap-0.5">
-                              <div className="w-1 h-1 bg-white/80 rounded-full"></div>
-                              <div className="w-1 h-1 bg-white/80 rounded-full"></div>
-                              <div className="w-1 h-1 bg-white/80 rounded-full"></div>
-                           </div>
-                        </div>
-
-                        {/* Fundo do Story comum */}
-                        <div className="flex-1 rounded-[2rem] bg-[#1a1a1a] flex flex-col justify-between items-center relative overflow-hidden mb-6 border border-white/5 pb-8">
-                           <Image src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=520&q=72" alt="Produto Tech" width={520} height={920} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover opacity-60" />
-
-                           <div></div>
-
-                           {/* Texto nativo do instagram "feio" */}
-                           <div className="bg-black/40 px-3 py-1 rounded-sm relative z-10 flex flex-col items-center">
-                              <span className="text-white font-sans text-xs bg-[#ff2200] max-w-max px-1">NOVIDADE NO PERFIL</span>
-                              <span className="text-white font-sans font-bold text-sm bg-black px-1 mt-1">CONFIRA AGORA</span>
-                           </div>
-                        </div>
-                     </div>
-                  </FadeIn>
-
-                  {/* Separador Visual VS */}
-                  <FadeIn delay={0.4} className="hidden lg:flex w-16 h-16 rounded-full bg-[#111] border border-white/10 items-center justify-center relative z-20 shadow-[0_0_30px_rgba(0,0,0,0.8)]">
-                     <span className="text-white/30 font-black text-xl italic drop-shadow-md">VS</span>
-                  </FadeIn>
-
-                  {/* ------------------------ DEPOIS (Com Stikz) ------------------------ */}
-                  <FadeIn delay={0.6} className="relative flex flex-col items-center w-full lg:w-auto">
-
-                     {/* Iluminação Exclusiva do Lado Premium */}
-                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[120%] bg-[#ff6a00]/[0.08] rounded-full blur-[80px] -z-10 pointer-events-none mix-blend-screen"></div>
-
-                     <div className="mb-8 bg-gradient-to-r from-[#ff6a00] to-[#cc5600] border border-[#ffb15c]/50 text-white px-6 py-2 rounded-full text-xs font-black uppercase tracking-[0.25em] shadow-[0_0_20px_rgba(255,106,0,0.4)] relative">
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_white] animate-ping"></span>
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_white]"></span>
-                        Depois: com presença
-                     </div>
-
-                     <motion.div
-                        animate={{ y: [0, -10, 0] }}
-                        transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-                        className="w-full max-w-[300px] aspect-[9/19] rounded-[3rem] bg-[#050505] border-[4px] border-[#222] shadow-[0_50px_100px_rgba(0,0,0,1),_0_20px_60px_rgba(255,106,0,0.2),_inset_0_4px_10px_rgba(255,255,255,0.15)] relative overflow-hidden flex flex-col px-5 pt-10 ring-1 ring-[#ff6a00]/30 transform-gpu"
-                     >
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-6 bg-[#222] rounded-b-2xl shadow-[inset_0_-2px_5px_rgba(0,0,0,0.5)]"></div>
-                        <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-b from-white/10 to-transparent mix-blend-overlay"></div>
-
-                        <div className="flex items-center justify-between mb-4 relative z-10 pt-2 px-1">
-                           <div className="flex items-center gap-2">
-                              <Image src="https://i.pravatar.cc/120?img=33" alt="Avatar" width={28} height={28} loading="lazy" decoding="async" className="w-7 h-7 rounded-full object-cover border border-white/20 shadow-md" />
-                              <div className="flex flex-col">
-                                 <span className="text-white text-[10px] font-semibold drop-shadow-md">@tech.imports</span>
-                                 <span className="text-white/50 text-[8px] drop-shadow-md">5 h</span>
-                              </div>
-                           </div>
-                           <div className="flex gap-0.5">
-                              <div className="w-1 h-1 bg-white/80 rounded-full"></div>
-                              <div className="w-1 h-1 bg-white/80 rounded-full"></div>
-                              <div className="w-1 h-1 bg-white/80 rounded-full"></div>
-                           </div>
-                        </div>
-
-                        {/* Fundo do Story com presença visual */}
-                        <div className="flex-1 rounded-[2rem] bg-[#111] flex flex-col justify-between items-center relative overflow-hidden mb-6 border border-white/10 shadow-[inner_0_0_30px_rgba(0,0,0,0.8)] group pb-8">
-                           <Image src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=520&q=72" alt="Produto Tech" width={520} height={920} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover opacity-90" />
-                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-
-                           <div></div>
-
-                           {/* Figurinha STIKZ Hiper Premium no Story */}
-                           <motion.div
-                              initial={{ scale: 0.8, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              transition={{ delay: 1.5, type: "spring", stiffness: 100 }}
-                              className="bg-black/40 px-4 py-3 border border-white/20 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.9),_0_0_20px_rgba(255,106,0,0.3),_inset_0_1px_2px_rgba(255,255,255,0.4)] backdrop-blur-xl relative z-10 transform -rotate-3 flex flex-col items-center"
-                           >
-                              <div className="bg-[#ff6a00] text-black text-[9px] uppercase font-black px-2 py-0.5 rounded-sm mb-1">Conteúdo em destaque</div>
-                              <span className="text-white font-black text-lg uppercase tracking-tighter block drop-shadow-xl text-center">
-                                 Visual que prende
-                                 <div className="text-[#ff6a00] flex justify-center drops-shadow-xl">
-                                    <span className="text-2xl font-black">o olhar</span>
-                                 </div>
-                              </span>
-                           </motion.div>
-                        </div>
-
-                        {/* Reflexo Tela (Glass Specular Highlight superior esquerdo) */}
-                        <div className="absolute -top-10 -left-10 w-[60%] h-[150%] bg-gradient-to-r from-white/30 to-transparent skew-x-[-30deg] opacity-20 pointer-events-none mix-blend-overlay"></div>
-                     </motion.div>
-                  </FadeIn>
-
-               </div>
-            </div>
-         </section>
-
-         {/* ------------------------------------------------------------- */}
-         {/* 2. AGITAÇÃO DA DOR (Dark Glassmorphism)                         */}
-         {/* ------------------------------------------------------------- */}
-         <section className="py-20 md:py-36 relative z-10 bg-[#0b0b0b]">
-            {/* LUZ DE FUNDO SUAVE */}
-            <div className="absolute top-0 right-[-30%] md:right-[-20%] w-[420px] md:w-[800px] h-[420px] md:h-[800px] bg-[#ff6a00]/[0.02] rounded-full blur-[70px] md:blur-[120px] pointer-events-none"></div>
-
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-               <FadeIn>
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black mb-6 md:mb-8 tracking-tight leading-[1.05] text-white">
-                     A atenção hoje é disputada<br />
-                     <span className="text-[#ff6a00]/90">em segundos.</span>
-                  </h2>
-               </FadeIn>
-
-               <FadeIn delay={0.2} className="relative z-10">
-                  <p className="text-base sm:text-lg md:text-2xl text-white/50 mb-12 md:mb-24 max-w-4xl mx-auto font-light leading-[1.6]">
-                     Se o seu Story não chama atenção no primeiro olhar, ele simplesmente é ignorado. Você não perde engajamento por falta de conteúdo. Você perde por falta de impacto visual.
-                  </p>
-               </FadeIn>
-
-               <div className="grid md:grid-cols-2 gap-6 md:gap-10 text-left max-w-5xl mx-auto relative perspective-1000">
-                  {/* Linha Divisória de Luz Cinematográfica */}
-                  <div className="hidden md:block absolute top-[50%] left-[45%] right-[45%] h-[2px] bg-gradient-to-r from-transparent via-[#ff6a00]/40 to-transparent z-0 blur-[1px]"></div>
-
-                  {/* Card comum (neutro e discreto) */}
-                  <FadeIn delay={0.3} className="relative z-10 h-full">
-                     <div className="bg-gradient-to-br from-[#141414] to-[#0a0a0a] p-7 sm:p-10 md:p-14 rounded-[2rem] md:rounded-[3rem] border border-white/[0.03] opacity-75 md:opacity-60 hover:opacity-100 transition-opacity duration-700 h-full flex flex-col justify-center gap-6 md:gap-8 shadow-2xl relative overflow-hidden group">
-                        {/* Inner top highlight */}
-                        <div className="absolute inset-0 rounded-[3rem] shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] pointer-events-none"></div>
-
-                        <h3 className="font-bold text-white/40 text-base sm:text-xl flex items-center gap-3 sm:gap-4 uppercase tracking-[0.15em]">
-                           <span className="w-3 h-3 rounded-full bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.12)]"></span>
-                           Story comum
-                        </h3>
-                        <ul className="space-y-4 sm:space-y-6 text-white/40 font-light text-base sm:text-lg">
-                           <li className="flex gap-4 items-start"><MonitorSmartphone className="w-7 h-7 shrink-0 opacity-30 mt-0.5" /> Compete com centenas de publicações parecidas.</li>
-                           <li className="flex gap-4 items-start"><MonitorSmartphone className="w-7 h-7 shrink-0 opacity-30 mt-0.5" /> Passa rápido, sem criar retenção visual.</li>
-                        </ul>
-                     </div>
-                  </FadeIn>
-
-                  {/* Card Stikz (Quente, Rico, Iluminado) */}
-                  <FadeIn delay={0.5} className="relative z-10 h-full">
-                     <div className="bg-gradient-to-br from-[#1c140d] via-[#120a05] to-[#0b0b0b] p-7 sm:p-10 md:p-14 rounded-[2rem] md:rounded-[3rem] border border-[#ff6a00]/40 shadow-[0_28px_56px_rgba(0,0,0,0.72),_0_0_44px_rgba(255,106,0,0.1),_inset_0_2px_4px_rgba(255,255,255,0.08)] md:shadow-[0_40px_80px_rgba(0,0,0,0.8),_0_0_80px_rgba(255,106,0,0.12),_inset_0_2px_4px_rgba(255,255,255,0.1)] backdrop-blur-xl md:backdrop-blur-3xl h-full flex flex-col justify-center gap-6 md:gap-8 relative overflow-hidden transform hover:-translate-y-3 transition-transform duration-500">
-                        {/* Efeito Glass/Blurry Glow interior */}
-                        <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-[#ff6a00]/10 rounded-full blur-[80px] pointer-events-none"></div>
-                        <div className="absolute inset-0 rounded-[3rem] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] pointer-events-none"></div>
-
-                        <div className="absolute top-0 right-0 bg-gradient-to-r from-[#ff6a00] to-[#e65a00] text-white px-6 py-2 text-[10px] font-extrabold uppercase tracking-[0.25em] rounded-bl-3xl rounded-tr-[3rem] shadow-[0_0_20px_rgba(255,106,0,0.5)]">
-                           Mais impacto
-                        </div>
-
-                        <h3 className="font-bold text-white text-base sm:text-xl flex items-center gap-3 sm:gap-4 uppercase tracking-[0.15em] relative z-10 mt-2">
-                           <span className="w-3 h-3 rounded-full bg-[#ff6a00] shadow-[0_0_15px_#ff6a00]"></span>
-                           Com Stikz
-                        </h3>
-                        <ul className="space-y-4 sm:space-y-6 text-white/90 font-light text-base sm:text-lg relative z-10">
-                           <li className="flex gap-4 items-start"><CheckCircle2 className="w-7 h-7 shrink-0 text-[#ff6a00] drop-shadow-[0_0_8px_#ff6a00] mt-0.5" /> Stories com presença visual imediatamente maior.</li>
-                           <li className="flex gap-4 items-start"><CheckCircle2 className="w-7 h-7 shrink-0 text-[#ff6a00] drop-shadow-[0_0_8px_#ff6a00] mt-0.5" /> Mais clareza para chamadas, avisos e mensagens importantes.</li>
-                           <li className="flex gap-4 items-start"><CheckCircle2 className="w-7 h-7 shrink-0 text-[#ff6a00] drop-shadow-[0_0_8px_#ff6a00] mt-0.5" /> Percepção mais profissional, mesmo com conteúdo simples.</li>
-                           <li className="flex gap-4 items-start"><CheckCircle2 className="w-7 h-7 shrink-0 text-[#ff6a00] drop-shadow-[0_0_8px_#ff6a00] mt-0.5" /> Escolha, copie, cole e publique.</li>
-                        </ul>
-                     </div>
-                  </FadeIn>
-               </div>
-            </div>
-         </section>
-
-         {/* ------------------------------------------------------------- */}
-         {/* 2.5 IMPACTO VISUAL (Atenção -> Presença)                         */}
-         {/* ------------------------------------------------------------- */}
-         <section className="py-20 md:py-32 relative z-10 bg-[#020202] border-y border-white/[0.05] overflow-hidden">
-            <div className="absolute top-0 right-1/2 w-[380px] md:w-[600px] h-[380px] md:h-[600px] bg-[#ff6a00]/[0.03] rounded-full blur-[70px] md:blur-[120px] pointer-events-none translate-x-1/2"></div>
-            
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-               <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-                  <FadeIn>
-                     <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-[#ff6a00]/10 border border-[#ff6a00]/20 text-[#ff8b3d] font-black text-[10px] md:text-xs uppercase tracking-[0.16em] sm:tracking-[0.2em] mb-7 md:mb-10 shadow-[0_0_20px_rgba(255,106,0,0.15)]">
-                        <TrendingUp className="w-4 h-4" /> O que muda
-                     </div>
-                     <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black tracking-tighter mb-6 md:mb-8 text-white leading-tight">
-                        O que muda quando o visual <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#ff6a00] to-[#cc5600] drop-shadow-xl">chama atenção</span>
-                     </h2>
-                  </FadeIn>
-                  
-                  <FadeIn delay={0.2}>
-                     <p className="text-base sm:text-lg md:text-2xl text-white/50 mb-12 md:mb-20 font-light leading-[1.6]">
-                        Um Story com presença visual não depende de exagero. Ele organiza a mensagem, valoriza o conteúdo e faz a pessoa parar por mais alguns segundos.
-                     </p>
-                  </FadeIn>
-               </div>
-
-               <div className="grid md:grid-cols-3 gap-5 md:gap-8 max-w-6xl mx-auto relative z-10">
-                  <FadeIn delay={0.3}>
-                     <div className="bg-[#111] border border-white/5 p-7 sm:p-10 md:p-12 rounded-[2rem] md:rounded-[3rem] flex flex-col items-center text-center shadow-[0_22px_44px_rgba(0,0,0,0.72),_inset_0_1px_1px_rgba(255,255,255,0.02)] md:shadow-[0_30px_60px_rgba(0,0,0,0.8),_inset_0_1px_1px_rgba(255,255,255,0.02)] backdrop-blur-xl md:backdrop-blur-3xl h-full transform hover:-translate-y-2 transition-transform duration-500 relative group overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <Eye className="w-9 h-9 md:w-12 md:h-12 text-white/30 mb-5 md:mb-8 group-hover:scale-110 transition-transform" />
-                        <h4 className="text-white font-black text-xl md:text-2xl mb-3 md:mb-4 uppercase tracking-wider">1. Mais atenção imediata</h4>
-                        <p className="text-white/50 text-base leading-relaxed font-light">Seus Stories deixam de ser ignorados e passam a ser notados.</p>
-                     </div>
-                  </FadeIn>
-                  
-                  <FadeIn delay={0.4}>
-                     <div className="bg-[#111] border border-white/5 p-7 sm:p-10 md:p-12 rounded-[2rem] md:rounded-[3rem] flex flex-col items-center text-center shadow-[0_22px_44px_rgba(0,0,0,0.72),_inset_0_1px_1px_rgba(255,255,255,0.02)] md:shadow-[0_30px_60px_rgba(0,0,0,0.8),_inset_0_1px_1px_rgba(255,255,255,0.02)] backdrop-blur-xl md:backdrop-blur-3xl h-full transform hover:-translate-y-2 transition-transform duration-500 relative group overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <MousePointerClick className="w-9 h-9 md:w-12 md:h-12 text-white/50 mb-5 md:mb-8 relative z-10 group-hover:scale-110 transition-transform" />
-                        <h4 className="text-white font-black text-xl md:text-2xl mb-3 md:mb-4 uppercase tracking-wider relative z-10">2. Mais interação</h4>
-                        <p className="text-white/50 text-base leading-relaxed font-light relative z-10">Quando o visual chama atenção, as pessoas param, respondem e interagem.</p>
-                     </div>
-                  </FadeIn>
-
-                  <FadeIn delay={0.5}>
-                     <div className="bg-gradient-to-br from-[#1c140d] to-[#0a0a0a] border border-[#ff6a00]/30 p-7 sm:p-10 md:p-12 rounded-[2rem] md:rounded-[3rem] flex flex-col items-center text-center shadow-[0_28px_56px_rgba(255,106,0,0.12),_0_18px_34px_rgba(0,0,0,0.72),_inset_0_1px_2px_rgba(255,255,255,0.08)] md:shadow-[0_40px_80px_rgba(255,106,0,0.15),_0_20px_40px_rgba(0,0,0,0.8),_inset_0_1px_2px_rgba(255,255,255,0.1)] backdrop-blur-xl md:backdrop-blur-3xl h-full transform hover:-translate-y-3 transition-transform duration-500 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 md:w-40 md:h-40 bg-[#ff6a00]/16 md:bg-[#ff6a00]/20 blur-[40px] md:blur-[60px] rounded-full mix-blend-screen pointer-events-none"></div>
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                        
-                        <Trophy className="w-9 h-9 md:w-12 md:h-12 text-[#ff6a00] mb-5 md:mb-8 drop-shadow-[0_0_12px_#ff6a00] md:drop-shadow-[0_0_15px_#ff6a00] relative z-10 group-hover:scale-110 transition-transform" />
-                        <h4 className="text-white font-black text-xl md:text-2xl mb-3 md:mb-4 uppercase tracking-wider relative z-10">3. Mais presença digital</h4>
-                        <p className="text-white/80 text-base leading-relaxed font-light relative z-10">Seu perfil passa a transmitir mais profissionalismo, mesmo com conteúdo simples.</p>
-                     </div>
-                  </FadeIn>
-               </div>
-            </div>
-         </section>
-
-         {/* ------------------------------------------------------------- */}
-         {/* 3. A SOLUÇÃO (Illuminated Steps)                                */}
-                           {/* ------------------------------------------------------------- */}
-                           <section className="py-24 md:py-40 relative overflow-hidden bg-[#070707]">
-                              {/* Luz que vem do chão (Bottom Light) */}
-                              <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[80%] max-w-[1200px] h-[220px] md:h-[300px] bg-[#ff6a00]/5 rounded-[100%] blur-[70px] md:blur-[120px] pointer-events-none"></div>
-
-                              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                                 <FadeIn className="text-center">
-                                    <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter mb-6 md:mb-8 text-white leading-tight">
-                                       Tudo o que você precisa,<br />
-                                       <span className="text-[#ff6a00] drop-shadow-md">em um único lugar.</span>
-                                    </h2>
-                                 </FadeIn>
-                                 <FadeIn delay={0.2}>
-                                    <p className="mt-4 md:mt-6 text-base sm:text-lg md:text-xl text-white/50 font-light max-w-3xl mx-auto mb-14 md:mb-28 text-center leading-[1.6]">
-                                       Pare de depender de edições complexas, apps confusos ou ideias que não funcionam. Tenha recursos prontos para melhorar seu visual, destacar seu conteúdo e elevar a percepção do seu perfil.
-                                    </p>
-                                 </FadeIn>
-
-                                 <div className="grid md:grid-cols-3 gap-6 md:gap-12 max-w-6xl mx-auto relative">
-
-                                    <FadeIn delay={0.3} className="relative group">
-                                       <div className="bg-gradient-to-b from-[#111] to-[#0a0a0a] p-7 sm:p-10 rounded-[2rem] md:rounded-[3rem] border border-white/5 shadow-[0_22px_44px_rgba(0,0,0,0.78),_inset_0_1px_1px_rgba(255,255,255,0.05)] md:shadow-[0_30px_60px_rgba(0,0,0,0.9),_inset_0_1px_1px_rgba(255,255,255,0.05)] backdrop-blur-xl md:backdrop-blur-3xl h-full flex flex-col items-center text-center hover:border-white/10 transition-colors relative z-10 hover:-translate-y-2 duration-500">
-                                          <div className="absolute inset-0 rounded-[3rem] shadow-[inset_0_1px_1px_rgba(255,255,255,0.03)] pointer-events-none"></div>
-                                          <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-[#1a1a1a] rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mb-6 md:mb-8 border border-white/5 relative z-10 shadow-[0_16px_28px_rgba(0,0,0,0.68)] md:shadow-[0_20px_40px_rgba(0,0,0,0.8)] group-hover:scale-105 transition-transform duration-500">
-                                             <DownloadCloud className="w-9 h-9 md:w-12 md:h-12 text-white/50 group-hover:text-white transition-colors" />
-                                             <div className="absolute -inset-2 bg-white/5 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-0"></div>
-                                             <span className="absolute -right-3 -top-3 w-10 h-10 rounded-full bg-gradient-to-br from-[#ff6a00] to-[#cc5600] flex items-center justify-center font-bold text-white shadow-[0_0_20px_rgba(255,106,0,0.4)] text-lg border border-[#ffb15c]/30 z-20">1</span>
-                                          </div>
-                                          <h3 className="text-2xl md:text-3xl font-black mb-3 md:mb-4 tracking-tight text-white relative z-10">Melhore seu visual</h3>
-                                          <p className="text-white/50 font-light text-base md:text-lg leading-relaxed relative z-10">Acesse peças prontas para dar mais acabamento aos seus Stories.</p>
-                                       </div>
-                                    </FadeIn>
-
-                                    <FadeIn delay={0.5} className="relative group">
-                                       <div className="bg-gradient-to-b from-[#1c140d] to-[#0b0b0b] p-7 sm:p-10 rounded-[2rem] md:rounded-[3rem] border border-[#ff6a00]/20 shadow-[0_28px_56px_rgba(255,106,0,0.12),_0_18px_34px_rgba(0,0,0,0.72),_inset_0_1px_1px_rgba(255,255,255,0.08)] md:shadow-[0_40px_80px_rgba(255,106,0,0.15),_0_20px_40px_rgba(0,0,0,0.8),_inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-xl md:backdrop-blur-3xl h-full flex flex-col items-center text-center hover:border-[#ff6a00]/40 transition-[colors,transform] transform hover:-translate-y-3 duration-500 relative z-20">
-                                          <div className="absolute inset-0 rounded-[3rem] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] pointer-events-none"></div>
-                                          <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-gradient-to-br from-[#331100] to-[#110500] rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mb-6 md:mb-8 border border-[#ff6a00]/30 relative z-10 shadow-[0_18px_34px_rgba(255,106,0,0.1)] group-hover:scale-105 transition-transform duration-500">
-                                             <Copy className="w-9 h-9 md:w-12 md:h-12 text-[#ff6a00] drop-shadow-[0_0_10px_#ff6a00]" />
-                                             <div className="absolute -inset-4 bg-[#ff6a00]/20 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-80 transition-opacity duration-200 z-0"></div>
-                                             <span className="absolute -right-3 -top-3 w-10 h-10 rounded-full bg-gradient-to-br from-[#ff6a00] to-[#cc5600] flex items-center justify-center font-bold text-white shadow-[0_0_20px_rgba(255,106,0,0.6)] text-lg border border-[#ffb15c]/30 z-20">2</span>
-                                          </div>
-                                          <h3 className="text-2xl md:text-3xl font-black mb-3 md:mb-4 tracking-tight text-white relative z-10">Destaque seu conteúdo</h3>
-                                          <p className="text-white/80 font-light text-base md:text-lg leading-relaxed relative z-10">Use chamadas, selos e elementos visuais que valorizam a mensagem.</p>
-                                       </div>
-                                    </FadeIn>
-
-                                    <FadeIn delay={0.7} className="relative group">
-                                       <div className="bg-gradient-to-b from-[#111] to-[#0a0a0a] p-7 sm:p-10 rounded-[2rem] md:rounded-[3rem] border border-white/5 shadow-[0_22px_44px_rgba(0,0,0,0.78),_inset_0_1px_1px_rgba(255,255,255,0.05)] md:shadow-[0_30px_60px_rgba(0,0,0,0.9),_inset_0_1px_1px_rgba(255,255,255,0.05)] backdrop-blur-xl md:backdrop-blur-3xl h-full flex flex-col items-center text-center hover:border-white/10 transition-colors relative z-10 hover:-translate-y-2 duration-500">
-                                          <div className="absolute inset-0 rounded-[3rem] shadow-[inset_0_1px_1px_rgba(255,255,255,0.03)] pointer-events-none"></div>
-                                          <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-[#1a1a1a] rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mb-6 md:mb-8 border border-white/5 relative z-10 shadow-[0_16px_28px_rgba(0,0,0,0.68)] md:shadow-[0_20px_40px_rgba(0,0,0,0.8)] group-hover:scale-105 transition-transform duration-500">
-                                             <MonitorSmartphone className="w-9 h-9 md:w-12 md:h-12 text-white/50 group-hover:text-white transition-colors" />
-                                             <div className="absolute -inset-2 bg-white/5 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-0"></div>
-                                             <span className="absolute -right-3 -top-3 w-10 h-10 rounded-full bg-gradient-to-br from-[#ff6a00] to-[#cc5600] flex items-center justify-center font-bold text-white shadow-[0_0_20px_rgba(255,106,0,0.4)] text-lg border border-[#ffb15c]/30 z-20">3</span>
-                                          </div>
-                                          <h3 className="text-2xl md:text-3xl font-black mb-3 md:mb-4 tracking-tight text-white relative z-10">Publique com presença</h3>
-                                          <p className="text-white/50 font-light text-base md:text-lg leading-relaxed relative z-10">Escolha, copie, cole e publique com um visual mais profissional.</p>
-                                       </div>
-                                    </FadeIn>
-                                 </div>
-                              </div>
-                           </section>
-         {/* ------------------------------------------------------------- */}
-         {/* 5. A BIBLIOTECA (Vitrine Premium Dupla)                         */}
-         {/* ------------------------------------------------------------- */}
-         <section className="pt-20 md:pt-32 pb-24 md:pb-44 bg-[#030303] overflow-hidden relative border-y border-white/[0.02] group/carousel-wrapper">
-            {/* Luz de Separação Superior/Inferior Cinematográfica */}
-            <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-[#ff6a00]/30 to-transparent"></div>
-            <div className="absolute bottom-0 w-full h-px bg-gradient-to-r from-transparent via-[#ff6a00]/30 to-transparent"></div>
-
-            {/* Ambient Glow */}
-            <div className="absolute top-[20%] left-[10%] w-[320px] md:w-[500px] h-[320px] md:h-[500px] bg-[#ff6a00]/[0.02] rounded-full blur-[70px] md:blur-[120px] pointer-events-none"></div>
-            <div className="absolute bottom-[20%] right-[10%] w-[360px] md:w-[600px] h-[360px] md:h-[600px] bg-[#ff9d2e]/[0.02] rounded-full blur-[80px] md:blur-[150px] pointer-events-none"></div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center mb-10 md:mb-20">
-               <FadeIn>
-                  <div className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 rounded-full bg-white/[0.02] border border-white/[0.05] text-white/60 font-bold text-[10px] sm:text-xs uppercase tracking-[0.18em] sm:tracking-[0.25em] mb-6 md:mb-8 backdrop-blur-md">
-                     <div className="w-1.5 h-1.5 rounded-full bg-[#ff6a00] shadow-[0_0_8px_#ff6a00] animate-pulse"></div>
-                     Biblioteca premium
-                  </div>
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-5 md:mb-6 tracking-tighter text-white drop-shadow-2xl leading-tight">
-                     Sistema completo <br className="hidden md:block" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6a00] to-[#ffb15c] drop-shadow-[0_0_15px_rgba(255,106,0,0.3)]">de figurinhas.</span>
-                  </h2>
-                  <p className="text-white/50 text-base sm:text-lg md:text-xl max-w-3xl mx-auto font-light leading-relaxed">
-                     Um acervo visual desenvolvido com base no que realmente chama atenção dentro dos Stories. Nada genérico: cada elemento foi pensado para destacar.
-                  </p>
-               </FadeIn>
-            </div>
-
-            {/* Aplicando o componente isolado */}
-            <VitrineSlider />
-         </section>
-
-         {/* ------------------------------------------------------------- */}
-         {/* 6. Benefícios Silenciosos (Cinematic View)                      */}
-         {/* ------------------------------------------------------------- */}
-         <section className="py-20 md:py-32 bg-[#0b0b0b] relative">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-               <FadeIn>
-                  <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black mb-14 md:mb-28 text-center tracking-tighter text-white leading-tight">
-                     Por que escolher <br className="hidden md:block" /> <span className="text-[#ff6a00] drop-shadow-md">a Stikz</span>
-                  </h2>
-               </FadeIn>
-
-               <div className="grid md:grid-cols-3 gap-y-12 md:gap-y-20 gap-x-16 relative z-10">
-                  <FadeIn delay={0.1} className="flex flex-col text-left group">
-                     <div className="w-full h-px bg-white/10 mb-6 md:mb-10 relative">
-                        <div className="absolute top-0 left-0 h-full w-full origin-left scale-x-0 bg-gradient-to-r from-[#ff6a00] to-transparent group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-                     </div>
-                     <h3 className="font-bold text-2xl md:text-3xl mb-4 md:mb-6 text-white tracking-tight flex items-center gap-4">01. Visual mais profissional</h3>
-                     <p className="text-white/40 text-base md:text-lg font-light leading-[1.7] md:leading-[1.8]">
-                        Eleve o acabamento dos seus Stories instantaneamente, sem depender de design complexo.
-                     </p>
-                  </FadeIn>
-
-                  <FadeIn delay={0.3} className="flex flex-col text-left group">
-                     <div className="w-full h-px bg-white/10 mb-6 md:mb-10 relative">
-                        <div className="absolute top-0 left-0 h-full w-full origin-left scale-x-0 bg-gradient-to-r from-[#ff6a00] to-transparent group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-                     </div>
-                     <h3 className="font-bold text-2xl md:text-3xl mb-4 md:mb-6 text-white tracking-tight flex items-center gap-4">02. Mais atenção e retenção</h3>
-                     <p className="text-white/40 text-base md:text-lg font-light leading-[1.7] md:leading-[1.8]">
-                        Elementos visuais bem posicionados ajudam a prender o olhar no primeiro contato.
-                     </p>
-                  </FadeIn>
-
-                  <FadeIn delay={0.5} className="flex flex-col text-left group">
-                     <div className="w-full h-px bg-white/10 mb-6 md:mb-10 relative">
-                        <div className="absolute top-0 left-0 h-full w-full origin-left scale-x-0 bg-gradient-to-r from-[#ff6a00] to-transparent group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-                     </div>
-                     <h3 className="font-bold text-2xl md:text-3xl mb-4 md:mb-6 text-white tracking-tight flex items-center gap-4">03. Conteúdo mais atrativo</h3>
-                     <p className="text-white/40 text-base md:text-lg font-light leading-[1.7] md:leading-[1.8]">
-                        Transforme chamadas simples em mensagens mais claras, bonitas e memoráveis.
-                     </p>
-                  </FadeIn>
-
-                  <FadeIn delay={0.2} className="flex flex-col text-left group">
-                     <div className="w-full h-px bg-white/10 mb-6 md:mb-10 relative">
-                        <div className="absolute top-0 left-0 h-full w-full origin-left scale-x-0 bg-gradient-to-r from-[#ff6a00] to-transparent group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-                     </div>
-                     <h3 className="font-bold text-2xl md:text-3xl mb-4 md:mb-6 text-white tracking-tight flex items-center gap-4">04. Processo simples</h3>
-                     <p className="text-white/40 text-base md:text-lg font-light leading-[1.7] md:leading-[1.8]">
-                        Escolha, copie e cole. O fluxo é rápido, direto e pensado para uso no celular.
-                     </p>
-                  </FadeIn>
-
-                  <FadeIn delay={0.4} className="flex flex-col text-left group">
-                     <div className="w-full h-px bg-white/10 mb-6 md:mb-10 relative">
-                        <div className="absolute top-0 left-0 h-full w-full origin-left scale-x-0 bg-gradient-to-r from-[#ff6a00] to-transparent group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-                     </div>
-                     <h3 className="font-bold text-2xl md:text-3xl mb-4 md:mb-6 text-white tracking-tight flex items-center gap-4">05. Biblioteca organizada</h3>
-                     <p className="text-white/40 text-base md:text-lg font-light leading-[1.7] md:leading-[1.8]">
-                        Recursos prontos para encontrar rapidamente o que combina com cada publicação.
-                     </p>
-                  </FadeIn>
-
-                  <FadeIn delay={0.6} className="flex flex-col text-left group">
-                     <div className="w-full h-px bg-white/10 mb-6 md:mb-10 relative">
-                        <div className="absolute top-0 left-0 h-full w-full origin-left scale-x-0 bg-gradient-to-r from-[#ff6a00] to-transparent group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-                     </div>
-                     <h3 className="font-bold text-2xl md:text-3xl mb-4 md:mb-6 text-white tracking-tight flex items-center gap-4">06. Atualizações frequentes</h3>
-                     <p className="text-white/40 text-base md:text-lg font-light leading-[1.7] md:leading-[1.8]">
-                        Novas figurinhas são adicionadas para manter seu conteúdo atual e relevante.
-                     </p>
-                  </FadeIn>
-
-                  <FadeIn delay={0.7} className="flex flex-col text-left group md:col-start-2">
-                     <div className="w-full h-px bg-white/10 mb-6 md:mb-10 relative">
-                        <div className="absolute top-0 left-0 h-full w-full origin-left scale-x-0 bg-gradient-to-r from-[#ff6a00] to-transparent group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-                     </div>
-                     <h3 className="font-bold text-2xl md:text-3xl mb-4 md:mb-6 text-white tracking-tight flex items-center gap-4">07. Acesso imediato</h3>
-                     <p className="text-white/40 text-base md:text-lg font-light leading-[1.7] md:leading-[1.8]">
-                        Comece a usar logo após o acesso, sem instalar aplicativo ou aprender ferramentas complexas.
-                     </p>
-                  </FadeIn>
-               </div>
-            </div>
-         </section>
-
-         {/* ------------------------------------------------------------- */}
-         {/* 8. OFERTA PRINCIPAL (A "Masterpiece" Box)                      */}
-         {/* ------------------------------------------------------------- */}
-         <section className="py-24 md:py-44 relative bg-[#070707] flex justify-center">
-            {/* LUZ DE FUNDO DA OFERTA SUPER INTENSA */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[760px] md:max-w-[900px] h-[520px] md:h-[900px] bg-[#ff6a00]/[0.04] rounded-full blur-[90px] md:blur-[150px] pointer-events-none"></div>
-            <div className="absolute bottom-0 w-full h-[200px] bg-gradient-to-t from-[#ff6a00]/10 to-transparent"></div>
-
-            <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-               <FadeIn>
-                  <h2 className="text-4xl sm:text-5xl md:text-7xl font-black mb-5 md:mb-6 tracking-tighter leading-[1.0] text-white">
-                     Chegou a hora de se destacar.
-                  </h2>
-                  <p className="text-white/50 text-base sm:text-lg md:text-2xl mb-12 md:mb-20 max-w-3xl mx-auto font-light leading-[1.6]">
-                     Pare de postar conteúdo comum. Comece a postar com presença.
-                  </p>
-               </FadeIn>
-
-               <FadeIn delay={0.3}>
-                  <motion.div
-                     className="bg-gradient-to-b from-[#1c1c1c] to-[#0b0b0b] border-[2px] md:border-[3px] border-[#ff6a00]/40 max-w-2xl mx-auto rounded-[2rem] md:rounded-[3.5rem] p-7 sm:p-12 md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.86),_0_0_44px_rgba(255,106,0,0.12),_inset_0_1px_1px_rgba(255,255,255,0.08)] md:shadow-[0_50px_100px_rgba(0,0,0,1),_0_0_80px_rgba(255,106,0,0.15),_inset_0_1px_1px_rgba(255,255,255,0.1)] relative overflow-hidden flex flex-col items-center"
-                  >
-                     {/* Cúpula de luz suave interir ao card */}
-                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[300px] bg-[#ff6a00]/10 blur-[100px] rounded-full pointer-events-none"></div>
-
-                     <div className="inline-flex bg-[#000] border border-[#ff6a00]/30 text-[#ff6a00] font-black px-4 sm:px-6 py-2.5 rounded-full text-[10px] md:text-sm mb-8 md:mb-12 uppercase tracking-[0.2em] md:tracking-[0.3em] shadow-[0_0_22px_rgba(255,106,0,0.16)]">
-                        Acesso vitalício
-                     </div>
-
-                     <h3 className="text-2xl md:text-3xl font-bold text-white mb-6 md:mb-8 tracking-tight">O que você vai receber</h3>
-
-                     <div className="text-7xl md:text-[8rem] font-black text-white mb-8 md:mb-10 flex justify-center items-center gap-1 drop-shadow-2xl">
-                        <div className="flex flex-col items-end mr-2 md:mr-3 pb-5 md:pb-8">
-                           <span className="text-xl md:text-2xl text-white/20 line-through font-light block mb-2 relative -top-2">R$ 197</span>
-                           <span className="text-4xl md:text-5xl text-[#ff6a00] font-bold">R$</span>
-                        </div>
-                        <span className="tracking-[-0.08em] relative text-transparent bg-clip-text bg-gradient-to-b from-white to-[#a0a0a0]">
-                           37
-                        </span>
-                        <span className="text-2xl md:text-3xl text-white/30 font-light pb-6 md:pb-8 ml-3">,00</span>
-                     </div>
-
-                     <div className="h-px w-[80%] bg-gradient-to-r from-transparent via-[#ff6a00]/40 to-transparent mb-12"></div>
-
-                     <ul className="space-y-4 md:space-y-6 text-left mb-10 md:mb-16 w-full font-light text-base md:text-lg text-white/70 px-1 sm:px-4">
-                        <li className="flex gap-5 items-start"><Check className="text-[#ff6a00] drop-shadow-[0_0_5px_#ff6a00] w-6 h-6 shrink-0 mt-0.5" /> <span><strong className="text-white font-semibold">Sistema completo de figurinhas.</strong> Um acervo visual desenvolvido para destacar seus Stories.</span></li>
-                        <li className="flex gap-5 items-start"><Check className="text-[#ff6a00] drop-shadow-[0_0_5px_#ff6a00] w-6 h-6 shrink-0 mt-0.5" /> <span><strong className="text-white font-semibold">Atualizações constantes.</strong> Novas figurinhas adicionadas frequentemente para manter seu conteúdo atual.</span></li>
-                        <li className="flex gap-5 items-start"><Check className="text-[#ff6a00] drop-shadow-[0_0_5px_#ff6a00] w-6 h-6 shrink-0 mt-0.5" /> <span><strong className="text-white font-semibold">Compatível com qualquer plataforma.</strong> Use no Instagram, WhatsApp, TikTok, Reels e outros formatos.</span></li>
-                        <li className="flex gap-5 items-start"><Check className="text-[#ff6a00] drop-shadow-[0_0_5px_#ff6a00] w-6 h-6 shrink-0 mt-0.5" /> <span><strong className="text-white font-semibold">Simples e imediato.</strong> Escolha, copie, cole e publique.</span></li>
-                     </ul>
-
-                     <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="w-full max-w-full sm:max-w-[90%] mx-auto relative group">
-                        {/* Super Glow no CTA Hero */}
-                        <div className="absolute -inset-1.5 md:-inset-2 bg-gradient-to-r from-[#ff6a00] to-[#ff9d2e] rounded-full blur-lg md:blur-xl opacity-45 md:opacity-55 group-hover:opacity-75 transition-opacity duration-200"></div>
-                        <Link href="/cadastro" className="relative flex items-center justify-center bg-gradient-to-b from-[#ff8b3d] to-[#e65a00] border border-white/20 text-white w-full py-4 sm:py-6 md:py-7 rounded-full font-black text-sm sm:text-xl md:text-2xl transition-[transform,opacity,box-shadow] duration-200 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] overflow-hidden">
-                           <div className="absolute inset-0 texture-sheen opacity-20 mix-blend-overlay"></div>
-                           <span className="relative z-10 tracking-[0.14em] sm:tracking-widest uppercase drop-shadow-md">Quero melhorar meus Stories</span>
-                        </Link>
-                     </motion.div>
-                     <span className="block text-[11px] text-center font-bold text-[#ff6a00]/60 mt-10 uppercase tracking-[0.3em]">Acesso imediato e pagamento seguro</span>
-                  </motion.div>
-               </FadeIn>
-            </div>
-         </section>
-
-         {/* 9. FAQ Minimalista (Acordeão Moderno) */}
-         <section className="py-24 md:py-40 bg-[#0b0b0b] border-t border-white/[0.02]">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-               <FadeIn>
-                  <h2 className="text-3xl md:text-5xl font-black mb-12 md:mb-20 text-center text-white tracking-tight">Perguntas frequentes</h2>
-               </FadeIn>
-               <FadeIn delay={0.2} className="space-y-4 max-w-3xl mx-auto">
-                  {faqs.map((faq, i) => (
-                     <div key={i} className={`rounded-3xl overflow-hidden transition-[border-color,box-shadow] duration-300 bg-[#121212] border ${openFaq === i ? 'border-[#ff6a00]/30 shadow-[0_10px_30px_rgba(255,106,0,0.05)]' : 'border-white/5 hover:border-white/10'}`}>
-                        <button
-                           onClick={() => toggleFaq(i)}
-                           className="w-full flex items-center justify-between p-5 sm:p-8 md:p-10 text-left focus:outline-none"
-                        >
-                           <span className={`font-bold text-base sm:text-lg md:text-xl tracking-tight pr-4 transition-colors duration-300 ${openFaq === i ? 'text-white' : 'text-white/60'}`}>{faq.q}</span>
-                           <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center shrink-0 transition-[background-color,color,box-shadow] duration-300 shadow-inner ${openFaq === i ? 'bg-gradient-to-br from-[#ff6a00] to-[#cc5600] text-white shadow-[0_0_15px_rgba(255,106,0,0.5)]' : 'bg-[#1a1a1a] text-white/30 border border-white/5'}`}>
-                              <ChevronDown className={`w-5 h-5 md:w-6 md:h-6 transform transition-transform duration-500 ${openFaq === i ? 'rotate-180' : ''}`} />
-                           </div>
-                        </button>
-                        <AnimatePresence>
-                           {openFaq === i && (
-                              <motion.div
-                                 initial={{ height: 0, opacity: 0 }}
-                                 animate={{ height: "auto", opacity: 1 }}
-                                 exit={{ height: 0, opacity: 0 }}
-                                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                                 className="overflow-hidden"
-                              >
-                                 <div className="px-5 sm:px-8 md:px-10 pb-7 md:pb-10 pt-0">
-                                    <p className="text-white/40 text-base md:text-xl font-light leading-[1.7] md:leading-[1.8]">{faq.a}</p>
-                                 </div>
-                              </motion.div>
-                           )}
-                        </AnimatePresence>
-                     </div>
-                  ))}
-               </FadeIn>
-            </div>
-         </section>
-
-         {/* 10. Garantia Condescendente Inabalável */}
-         <section className="pt-24 md:pt-36 pb-28 md:pb-48 relative overflow-hidden bg-[#070707] text-center flex flex-col items-center border-y border-white/[0.02]">
-            <div className="absolute top-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-
-            <div className="max-w-4xl mx-auto px-4 relative z-10 flex flex-col items-center">
-               <FadeIn>
-                  <div className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-b from-[#1a1a1a] to-transparent flex items-center justify-center mb-8 md:mb-12 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),_0_20px_40px_rgba(0,0,0,1)] border border-[#ff6a00]/20 relative">
-                     <ShieldCheck className="w-9 h-9 md:w-12 md:h-12 text-[#ff6a00] drop-shadow-[0_0_5px_#ff6a00]" />
-                     <div className="absolute inset-0 rounded-full border border-[#ff6a00]/10 scale-[1.3] opacity-30"></div>
-                     <div className="absolute inset-0 rounded-full border border-[#ff6a00]/10 scale-[1.6] opacity-10"></div>
-                  </div>
-               </FadeIn>
-               <FadeIn delay={0.2}>
-                  <h2 className="text-3xl sm:text-4xl md:text-6xl font-black mb-6 md:mb-10 tracking-tighter text-white">Teste sem risco por 7 dias.</h2>
-               </FadeIn>
-               <FadeIn delay={0.3}>
-                  <p className="text-base sm:text-lg md:text-2xl text-white/40 mb-10 md:mb-16 max-w-3xl mx-auto font-light leading-[1.65] md:leading-[1.7]">
-                     Você pode usar, testar e avaliar com calma. Se não fizer sentido para você, devolvemos 100% do valor. Sem burocracia.
-                  </p>
-               </FadeIn>
-
-               <FadeIn delay={0.4}>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                     <Link href="/cadastro" className="inline-flex items-center justify-center gap-4 border border-white/20 text-white bg-transparent hover:bg-white/5 hover:border-white/40 px-7 sm:px-12 py-4 sm:py-6 rounded-full font-bold text-[11px] md:text-sm transition-[transform,opacity,background-color,border-color] duration-200 uppercase tracking-[0.16em] sm:tracking-[0.25em] shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
-                        Quero usar agora
-                     </Link>
-                  </motion.div>
-               </FadeIn>
-            </div>
-         </section>
-
-         {/* 11. Fechamento Premium */}
-         <section className="py-24 md:py-36 relative overflow-hidden bg-[#050505] text-center">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ff6a00]/30 to-transparent"></div>
-            <div className="absolute left-1/2 top-1/2 w-[420px] md:w-[760px] h-[420px] md:h-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ff6a00]/[0.035] blur-[90px] md:blur-[150px] pointer-events-none"></div>
-
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-               <FadeIn>
-                  <h2 className="text-4xl sm:text-5xl md:text-7xl font-black mb-5 md:mb-7 tracking-tighter leading-[1.0] text-white">
-                     Seu conteúdo já é bom.
-                  </h2>
-                  <p className="text-white/50 text-lg sm:text-xl md:text-3xl mb-10 md:mb-14 font-light leading-[1.45]">
-                     Só falta o visual acompanhar.
-                  </p>
-               </FadeIn>
-
-               <FadeIn delay={0.2}>
-                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="relative group mx-auto inline-block w-full max-w-[320px] sm:max-w-none sm:w-auto">
-                     <div className="absolute -inset-2 sm:-inset-3 bg-gradient-to-r from-[#ff6a00] to-[#ff9d2e] rounded-full blur-lg sm:blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-200 pointer-events-none"></div>
-                     <Link href="/cadastro" className="relative flex items-center justify-center gap-3 bg-gradient-to-b from-[#ff832b] via-[#ff6a00] to-[#cc5600] border-t border-[#ffb15c]/50 border-b-2 border-black/50 text-white px-6 sm:px-10 py-4 sm:py-5 rounded-full font-black text-[0.8rem] sm:text-lg transition-[transform,opacity,box-shadow] duration-200 shadow-[inset_0_2px_4px_rgba(255,255,255,0.35),_0_16px_30px_rgba(0,0,0,0.5)] overflow-hidden">
-                        <div className="absolute inset-0 texture-sheen opacity-20 mix-blend-overlay"></div>
-                        <span className="relative z-10 tracking-[0.12em] sm:tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] whitespace-nowrap">Quero usar agora</span>
-                        <ArrowRight className="relative z-10 w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200 text-white" />
-                     </Link>
-                  </motion.div>
-               </FadeIn>
-            </div>
-         </section>
-
-         {/* Footer Minimalista Elite */}
-         <footer className="py-14 md:py-20 bg-[#000] text-text-secondary font-light text-sm border-t border-white/[0.03]">
-            <div className="max-w-7xl mx-auto px-4 flex flex-col items-center gap-10 text-center">
-               <div className="flex flex-col items-center opacity-40 hover:opacity-100 transition-opacity duration-500 cursor-default">
-                  <div className="flex items-center gap-3">
-                     <div className="w-6 h-6 rounded-md flex items-center justify-center bg-white/20 shadow-inner">
-                        <Z className="w-3.5 h-3.5 text-white" />
-                     </div>
-                     <span className="font-extrabold text-2xl text-white tracking-tighter">Stikz<span className="text-[#ff6a00]">.</span></span>
-                  </div>
-                  <p className="mt-5 text-[10px] uppercase tracking-[0.3em]">Stikz © {new Date().getFullYear()}</p>
-               </div>
-
-               <div className="flex flex-wrap justify-center gap-8 md:gap-12 tracking-[0.25em] text-[10px] uppercase font-bold opacity-30 mt-4">
-                  <Link href="#" className="hover:text-white hover:opacity-100 transition-[color,opacity] duration-200">Privacidade</Link>
-                  <Link href="#" className="hover:text-white hover:opacity-100 transition-[color,opacity] duration-200">Termos</Link>
-                  <Link href="#" className="hover:text-white hover:opacity-100 transition-[color,opacity] duration-200">Suporte</Link>
-               </div>
-            </div>
-         </footer>
-      </div>
-   );
+    </div>
+  );
 }
 
-// Minimalist Decorator SVG (Refined)
-function Z({ className }: { className?: string }) {
-   return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className={className}>
-         <path d="M4 6h16M4 18h16M7 6l10 12" />
-      </svg>
-   );
+// ─── FAQ Item ─────────────────────────────────────────────────────────────────
+
+function FaqAccordion({ faq, isOpen, onToggle }: { faq: FaqItem; isOpen: boolean; onToggle: () => void }) {
+  return (
+    <div
+      className={`overflow-hidden rounded-2xl border transition-colors duration-300 ${
+        isOpen ? 'border-[#ff8c00]/25 bg-[#111]' : 'border-white/5 bg-[#0d0d0d] hover:border-white/10'
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between gap-4 p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff8c00]/50 sm:p-6"
+      >
+        <span className={`text-sm font-bold transition-colors duration-200 sm:text-base ${isOpen ? 'text-white' : 'text-white/55'}`}>
+          {faq.q}
+        </span>
+        <div
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all duration-300 ${
+            isOpen ? 'bg-[#ff8c00] text-white' : 'border border-white/10 bg-white/5 text-white/35'
+          }`}
+        >
+          <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <p className="px-5 pb-5 text-sm font-light leading-relaxed text-white/45 sm:px-6 sm:pb-6 sm:text-base">
+              {faq.a}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Phone Mockup ─────────────────────────────────────────────────────────────
+
+function PhoneMockup() {
+  return (
+    <div className="relative mx-auto w-fit">
+      {/* floating badges */}
+      <motion.div
+        animate={{ y: [0, -10, 0], rotate: [-2, 2, -2] }}
+        transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }}
+        className="absolute -left-12 top-14 z-20 hidden rounded-xl border border-[#ff8c00]/30 bg-black/80 px-3 py-2 text-[11px] font-black uppercase tracking-wide text-[#ff8c00] shadow-[0_0_18px_rgba(255,140,0,0.2)] backdrop-blur sm:block"
+      >
+        🔥 Trending
+      </motion.div>
+      <motion.div
+        animate={{ y: [0, 10, 0], rotate: [2, -2, 2] }}
+        transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
+        className="absolute -right-10 top-28 z-20 hidden rounded-xl border border-white/10 bg-black/80 px-3 py-2 text-[11px] font-bold text-white/65 shadow-lg backdrop-blur sm:block"
+      >
+        ✅ Acesso ativo
+      </motion.div>
+      <motion.div
+        animate={{ y: [0, -7, 0] }}
+        transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }}
+        className="absolute -right-8 bottom-20 z-20 hidden rounded-2xl border border-[#ff8c00]/20 bg-[#ff8c00]/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#ffb566] backdrop-blur sm:block"
+      >
+        Copiar · 2 cliques
+      </motion.div>
+
+      {/* glow behind phone */}
+      <div className="pointer-events-none absolute inset-0 -z-10 scale-75 rounded-full bg-[#ff8c00]/10 blur-[60px]" />
+
+      {/* phone shell */}
+      <motion.div
+        animate={{ y: [0, -8, 0] }}
+        transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut' }}
+        className="relative w-[220px] rounded-[3rem] border-[3px] border-[#252525] bg-[#050505] p-3 shadow-[-18px_28px_60px_rgba(0,0,0,0.9),0_0_36px_rgba(255,140,0,0.1)] sm:w-[260px]"
+      >
+        {/* notch */}
+        <div className="absolute left-1/2 top-0 z-10 h-5 w-1/3 -translate-x-1/2 rounded-b-2xl bg-[#111]" />
+
+        {/* screen */}
+        <div className="overflow-hidden rounded-[2.4rem] bg-[#0a0a0a]">
+          {/* top bar */}
+          <div className="flex items-center justify-between bg-[#111] px-4 pb-3 pt-7">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#ff8c00] to-[#ff6b00] text-[10px] font-black text-white shadow-[0_0_10px_rgba(255,140,0,0.3)]">
+                S
+              </div>
+              <div>
+                <p className="text-[10px] font-bold leading-none text-white">STIKZ</p>
+                <p className="mt-0.5 text-[8px] text-white/35">Selecione uma categoria</p>
+              </div>
+            </div>
+            <div className="flex h-5 w-5 items-center justify-center rounded-md border border-white/10">
+              <div className="h-2 w-2 rounded-sm bg-white/25" />
+            </div>
+          </div>
+
+          {/* category grid */}
+          <div className="grid grid-cols-2 gap-1.5 bg-[#0a0a0a] p-2.5">
+            {(['Rifas', 'Barbearia', 'Carros', 'Lojistas'] as const).map((label, i) => {
+              const colors = ['#ff8c00', '#ffb566', '#ff6b00', '#ff8c00'];
+              return (
+                <div key={label} className="rounded-xl border border-white/5 bg-[#111] p-2.5">
+                  <div className="mb-1.5 h-2 w-2 rounded-full" style={{ background: colors[i] }} />
+                  <p className="text-[9px] font-bold text-white/70">{label}</p>
+                  <p className="mt-0.5 text-[7px] text-white/25">Pack disponível</p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* sticker preview strip */}
+          <div className="bg-[#0a0a0a] px-2.5 pb-3">
+            <div className="rounded-xl border border-[#ff8c00]/20 bg-[#111] p-2">
+              <p className="mb-1.5 text-[8px] font-black uppercase tracking-wider text-[#ff8c00]/60">Preview</p>
+              <div className="mb-2 flex gap-1.5">
+                {[0, 1, 2].map((n) => (
+                  <div key={n} className="aspect-square flex-1 rounded-lg border border-white/5 bg-[#1a1a1a]" />
+                ))}
+              </div>
+              <div className="rounded-lg bg-gradient-to-r from-[#ff8c00] to-[#ff6b00] py-1.5 text-center">
+                <p className="text-[8px] font-black uppercase tracking-wider text-white">Copiar figurinha</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── Z logo icon ──────────────────────────────────────────────────────────────
+
+function ZIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M4 6h16M4 18h16M7 6l10 12" />
+    </svg>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function LandingPage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) return null;
+
+  return (
+    <div className="min-h-screen w-screen max-w-[100vw] overflow-x-hidden bg-[#080808] text-white selection:bg-[#ff8c00] selection:text-black">
+
+      {/* ambient radial */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_0%,rgba(255,140,0,0.05),transparent)]" />
+      </div>
+
+      {/* ─── 1. Header ──────────────────────────────────────────────── */}
+      <header className="fixed top-0 z-50 w-full border-b border-white/[0.05] bg-[#080808]/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-8">
+
+          <Link href="/" aria-label="STIKZ início" className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#ff8c00] to-[#ff6b00] shadow-[0_0_14px_rgba(255,140,0,0.28)]">
+              <ZIcon className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-xl font-black tracking-tighter text-white">
+              Stikz<span className="text-[#ff8c00]">.</span>
+            </span>
+          </Link>
+
+          <nav aria-label="Navegação principal" className="hidden items-center gap-7 text-[13px] font-semibold text-white/45 md:flex">
+            <Link href="#como-funciona" className="transition-colors hover:text-white">Como funciona</Link>
+            <Link href="#categorias"    className="transition-colors hover:text-white">Categorias</Link>
+            <Link href="#beneficios"    className="transition-colors hover:text-white">Benefícios</Link>
+            <Link href="#precos"        className="transition-colors hover:text-white">Preço</Link>
+          </nav>
+
+          <Link
+            href={CHECKOUT_URL}
+            className="rounded-full bg-gradient-to-b from-[#ff9d2e] to-[#ff6b00] px-4 py-2 text-xs font-black uppercase tracking-wider text-white shadow-[0_0_18px_rgba(255,140,0,0.22)] transition-transform hover:scale-105 sm:px-5 sm:text-sm"
+          >
+            Começar agora
+          </Link>
+        </div>
+      </header>
+
+      {/* ─── 2. Hero ────────────────────────────────────────────────── */}
+      <section className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-4 pb-20 pt-28 sm:pt-36 lg:min-h-0 lg:py-40">
+
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-[30%] h-[700px] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ff8c00]/[0.055] blur-[130px]" />
+        </div>
+
+        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center gap-14 lg:flex-row lg:items-center lg:gap-16">
+
+          {/* text */}
+          <div className="flex-1 text-center lg:text-left">
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#ff8c00]/20 bg-[#ff8c00]/[0.08] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[#ffb566]"
+            >
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ff8c00]" />
+              Para rifeiros, lojistas e criadores
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="mb-6 text-[2.35rem] font-black leading-[1.0] tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-[3.6rem] xl:text-[4.2rem]"
+            >
+              Figurinhas prontas para{' '}
+              <span className="bg-gradient-to-r from-[#ff8c00] via-[#ff9d2e] to-[#ffb86b] bg-clip-text text-transparent">
+                transformar seus stories
+              </span>{' '}
+              em chamadas impossíveis de ignorar
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-8 text-base font-light leading-relaxed text-white/50 sm:text-lg lg:max-w-lg"
+            >
+              Copie, cole e use direto no Instagram. Packs organizados por categorias para criar stories mais chamativos, rápidos e profissionais.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex flex-col items-center gap-3 sm:flex-row lg:items-start"
+            >
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="group relative w-full sm:w-auto">
+                <div className="pointer-events-none absolute -inset-2 rounded-full bg-gradient-to-r from-[#ff8c00] to-[#ff6b00] opacity-25 blur-xl transition-opacity group-hover:opacity-45" />
+                <Link
+                  href={CHECKOUT_URL}
+                  className="relative flex items-center justify-center gap-2 rounded-full bg-gradient-to-b from-[#ff9d2e] to-[#ff6b00] px-7 py-4 text-sm font-black uppercase tracking-wide text-white shadow-[inset_0_2px_4px_rgba(255,255,255,0.28),0_12px_28px_rgba(0,0,0,0.4)]"
+                >
+                  Quero acessar por R$ 19,99
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </motion.div>
+
+              <Link
+                href="#como-funciona"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-6 py-4 text-sm font-bold text-white/60 transition-all hover:border-white/20 hover:text-white sm:w-auto"
+              >
+                Ver como funciona
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="mt-6 flex flex-wrap items-center justify-center gap-4 lg:justify-start"
+            >
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-white/35">
+                <Check className="h-3.5 w-3.5 text-[#ff8c00]" /> Acesso imediato após o pagamento
+              </span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-white/35">
+                <Check className="h-3.5 w-3.5 text-[#ff8c00]" /> Copiar e colar em 2 cliques
+              </span>
+            </motion.div>
+          </div>
+
+          {/* phone */}
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="flex-shrink-0"
+          >
+            <PhoneMockup />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── 3. Vitrine ─────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#050505] py-8 sm:py-12">
+        <p className="mb-6 text-center text-[10px] font-black uppercase tracking-[0.28em] text-white/20 sm:mb-8">
+          Um arsenal visual pronto para seus stories
+        </p>
+        <div className="sticker-marquee">
+          <MarqueeTrack items={stickerRows.top}    direction="right" tone="orange" />
+          <MarqueeTrack items={stickerRows.bottom} direction="left"  tone="amber"  />
+        </div>
+      </section>
+
+      {/* ─── 4. Problema ────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#070707] py-20 sm:py-28">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+          <div className="mb-12 text-center sm:mb-16">
+            <h2 className="text-3xl font-black leading-tight tracking-tighter text-white sm:text-4xl md:text-5xl">
+              Seu story pode estar bom,
+              <br />
+              <span className="text-white/30">mas sem visual ele passa batido</span>
+            </h2>
+            <p className="mx-auto mt-5 max-w-2xl text-base font-light text-white/40 sm:text-lg">
+              Não importa se você tem uma boa oferta. Sem impacto visual, a mensagem passa reto.
+            </p>
+          </div>
+
+          {/* problem cards */}
+          <div className="grid gap-4 sm:grid-cols-3 sm:gap-5">
+            {(
+              [
+                { icon: TrendingUp,    label: 'Pouco destaque',     text: 'Sem figurinhas que chamem atenção, seu story se perde entre dezenas de outros.' },
+                { icon: MessageCircle, label: 'Baixa interação',    text: 'Ninguém para para responder quando o visual não convida. Engajamento cai.' },
+                { icon: Clock,         label: 'Demora para criar',  text: 'Montar um story com visual forte do zero toma tempo. Tempo que você não tem.' },
+              ] as const
+            ).map(({ icon: Icon, label, text }) => (
+              <motion.div key={label} whileHover={{ y: -6 }} className="rounded-2xl border border-red-500/10 bg-[#0e0e0e] p-6 sm:p-7">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-red-500/15 bg-red-500/[0.07]">
+                  <Icon className="h-5 w-5 text-red-400/60" />
+                </div>
+                <h3 className="mb-2 text-base font-black text-white">{label}</h3>
+                <p className="text-sm font-light leading-relaxed text-white/40">{text}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* solution bridge */}
+          <div className="mt-10 rounded-2xl border border-[#ff8c00]/18 bg-gradient-to-br from-[#180e00] to-[#0a0a0a] p-7 sm:mt-14 sm:p-10">
+            <div className="grid gap-8 sm:grid-cols-3">
+              {(
+                [
+                  { icon: Sparkles,   label: 'Visual pronto',              text: 'Figurinhas criadas por profissionais. Sem precisar criar nada do zero.' },
+                  { icon: FolderOpen, label: 'Categorias organizadas',     text: 'Tudo separado por nicho. Encontre o que precisa em segundos.' },
+                  { icon: Copy,       label: 'Uso direto no Instagram',    text: 'Copie aqui. Cole no Instagram. Funcionou. Simples assim.' },
+                ] as const
+              ).map(({ icon: Icon, label, text }) => (
+                <div key={label} className="flex gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#ff8c00]/20 bg-[#ff8c00]/[0.08]">
+                    <Icon className="h-5 w-5 text-[#ff8c00]" />
+                  </div>
+                  <div>
+                    <p className="mb-1 font-bold text-white">{label}</p>
+                    <p className="text-sm font-light text-white/40">{text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 5. Como funciona ───────────────────────────────────────── */}
+      <section id="como-funciona" className="relative scroll-mt-20 overflow-hidden bg-[#060606] py-20 sm:py-28">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[400px] w-full max-w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ff8c00]/[0.04] blur-[100px]" />
+
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center sm:mb-16">
+            <span className="mb-3 inline-block text-[11px] font-black uppercase tracking-[0.22em] text-[#ff8c00]/60">Simples assim</span>
+            <h2 className="text-3xl font-black tracking-tighter text-white sm:text-4xl md:text-5xl">
+              Copiou. Colou. Postou.
+            </h2>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-3 sm:gap-7">
+            {howItWorksSteps.map((step, i) => (
+              <motion.div
+                key={step.step}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="relative rounded-2xl border border-white/5 bg-[#0e0e0e] p-7"
+              >
+                <div className="mb-5 text-4xl font-black text-[#ff8c00]/18">{step.step}</div>
+                <h3 className="mb-2 text-lg font-black text-white">{step.title}</h3>
+                <p className="text-sm font-light leading-relaxed text-white/40">{step.description}</p>
+                {i < howItWorksSteps.length - 1 && (
+                  <div className="absolute -right-3.5 top-1/2 hidden -translate-y-1/2 sm:block">
+                    <ArrowRight className="h-5 w-5 text-white/12" />
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 6. Categorias ──────────────────────────────────────────── */}
+      <section id="categorias" className="scroll-mt-20 bg-[#080808] py-20 sm:py-28">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center sm:mb-16">
+            <span className="mb-3 inline-block text-[11px] font-black uppercase tracking-[0.22em] text-[#ff8c00]/60">Packs disponíveis</span>
+            <h2 className="text-3xl font-black tracking-tighter text-white sm:text-4xl md:text-5xl">
+              Figurinhas para cada nicho
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg text-base font-light text-white/40">
+              Tudo organizado em pastas. Encontre exatamente o que você precisa.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+            {categoryCards.map((cat, i) => {
+              const Icon = cat.icon;
+              return (
+                <motion.div
+                  key={cat.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: i * 0.055 }}
+                  whileHover={{ y: -5 }}
+                  className="group relative overflow-hidden rounded-2xl border border-white/5 bg-[#0e0e0e] p-5 transition-colors hover:border-[#ff8c00]/18 sm:p-6"
+                >
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#ff8c00]/[0.04] to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                  <div
+                    className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-white/5 transition-colors group-hover:border-[#ff8c00]/18"
+                    style={{ background: `${cat.color}10` }}
+                  >
+                    <Icon className="h-5 w-5" style={{ color: cat.color }} />
+                  </div>
+                  <h3 className="mb-1 text-sm font-black text-white sm:text-base">{cat.title}</h3>
+                  <p className="text-xs font-light text-white/35 sm:text-sm">{cat.description}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 7. Antes / Depois ──────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#050505] py-20 sm:py-28">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center sm:mb-16">
+            <span className="mb-3 inline-block text-[11px] font-black uppercase tracking-[0.22em] text-[#ff8c00]/60">Diferença real</span>
+            <h2 className="text-3xl font-black tracking-tighter text-white sm:text-4xl md:text-5xl">
+              O mesmo story.
+              <br />
+              <span className="text-white/30">Visual completamente diferente.</span>
+            </h2>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 sm:gap-10">
+            {/* Before */}
+            <div className="flex flex-col items-center gap-5">
+              <span className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/[0.07] px-4 py-1.5 text-[11px] font-black uppercase tracking-wider text-red-400/80">
+                Sem STIKZ
+              </span>
+              <div className="w-full max-w-[220px] rounded-[2rem] border border-white/8 bg-[#111] p-3 shadow-[0_24px_50px_rgba(0,0,0,0.6)]">
+                <div className="relative aspect-[9/16] overflow-hidden rounded-[1.5rem] bg-[#181818]">
+                  <div className="absolute inset-0 bg-gradient-to-b from-[#2e2e2e] to-[#111]" />
+                  <div className="relative flex h-full flex-col items-center justify-center gap-3 p-5">
+                    <div className="h-2.5 w-24 rounded-full bg-white/10" />
+                    <div className="h-2 w-32 rounded-full bg-white/6" />
+                    <div className="h-2 w-20 rounded-full bg-white/6" />
+                    <div className="mt-4 h-8 w-24 rounded-xl bg-white/7" />
+                  </div>
+                </div>
+              </div>
+              <p className="max-w-[200px] text-center text-xs font-light text-white/28">
+                Story simples, sem chamada visual. Passa batido.
+              </p>
+            </div>
+
+            {/* After */}
+            <div className="flex flex-col items-center gap-5">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#ff8c00]/22 bg-[#ff8c00]/[0.08] px-4 py-1.5 text-[11px] font-black uppercase tracking-wider text-[#ffb566]">
+                Com STIKZ
+              </span>
+              <div className="w-full max-w-[220px] rounded-[2rem] border border-[#ff8c00]/18 bg-[#111] p-3 shadow-[0_24px_50px_rgba(255,140,0,0.08),0_24px_50px_rgba(0,0,0,0.6)]">
+                <div className="relative aspect-[9/16] overflow-hidden rounded-[1.5rem] bg-gradient-to-b from-[#1c0e00] to-[#0a0a0a]">
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,140,0,0.13),transparent_55%)]" />
+                  <div className="relative flex h-full flex-col gap-3 p-4">
+                    <div className="mt-4 self-start rounded-lg border border-[#ff8c00]/28 bg-black/50 px-3 py-2 shadow-[0_0_14px_rgba(255,140,0,0.18)] backdrop-blur">
+                      <div className="mb-1 h-1.5 w-10 rounded-full bg-[#ff8c00]/65" />
+                      <div className="h-4 w-20 rounded bg-white/80" />
+                    </div>
+                    <div className="self-center rounded-2xl border border-[#ff8c00]/35 bg-black/60 px-4 py-3 backdrop-blur">
+                      <div className="mb-1 h-1.5 w-14 rounded-full bg-[#ffb566]/55" />
+                      <div className="h-5 w-20 rounded bg-white" />
+                      <div className="mt-1 h-1.5 w-10 rounded-full bg-white/28" />
+                    </div>
+                    <div className="mt-auto self-stretch rounded-xl bg-gradient-to-r from-[#ff8c00] to-[#ff6b00] px-4 py-3 shadow-[0_0_18px_rgba(255,140,0,0.35)]">
+                      <div className="h-3 w-20 rounded-full bg-white/80" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="max-w-[200px] text-center text-xs font-light text-white/45">
+                Story com stickers STIKZ. CTA, destaque e interação.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 8. Benefícios ──────────────────────────────────────────── */}
+      <section id="beneficios" className="scroll-mt-20 bg-[#070707] py-20 sm:py-28">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center sm:mb-16">
+            <span className="mb-3 inline-block text-[11px] font-black uppercase tracking-[0.22em] text-[#ff8c00]/60">O que você recebe</span>
+            <h2 className="text-3xl font-black tracking-tighter text-white sm:text-4xl md:text-5xl">
+              O que você recebe na STIKZ
+            </h2>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+            {benefitCards.map((benefit, i) => {
+              const Icon = benefit.icon;
+              return (
+                <motion.div
+                  key={benefit.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: i * 0.07 }}
+                  className="flex gap-4 rounded-2xl border border-white/5 bg-[#0e0e0e] p-5 sm:p-6"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#ff8c00]/18 bg-[#ff8c00]/[0.07]">
+                    <Icon className="h-5 w-5 text-[#ff8c00]" />
+                  </div>
+                  <div>
+                    <h3 className="mb-1 font-bold text-white">{benefit.title}</h3>
+                    <p className="text-sm font-light leading-relaxed text-white/40">{benefit.description}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 9. Preço ───────────────────────────────────────────────── */}
+      <section id="precos" className="relative scroll-mt-20 overflow-hidden bg-[#060606] py-20 sm:py-28">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-full max-w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ff8c00]/[0.045] blur-[120px]" />
+
+        <div className="relative z-10 mx-auto max-w-xl px-4 sm:px-6">
+          <div className="mb-10 text-center sm:mb-12">
+            <span className="mb-3 inline-block text-[11px] font-black uppercase tracking-[0.22em] text-[#ff8c00]/60">Acesso completo</span>
+            <h2 className="text-3xl font-black tracking-tighter text-white sm:text-4xl md:text-5xl">
+              Simples. Direto. Sem enrolação.
+            </h2>
+          </div>
+
+          <motion.div
+            whileHover={{ y: -4 }}
+            className="relative overflow-hidden rounded-3xl border border-[#ff8c00]/28 bg-gradient-to-b from-[#1a0e00] to-[#0a0a0a] p-8 shadow-[0_40px_80px_rgba(0,0,0,0.8),0_0_50px_rgba(255,140,0,0.07)] sm:p-10"
+          >
+            <div className="pointer-events-none absolute top-0 right-0 h-60 w-60 rounded-full bg-[#ff8c00]/[0.07] blur-[80px]" />
+
+            <div className="relative z-10">
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#ff8c00]/28 bg-[#ff8c00]/[0.08] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#ffb566]">
+                <Sparkles className="h-3 w-3" /> Acesso STIKZ completo
+              </div>
+
+              <div className="my-6 flex flex-wrap items-end gap-3">
+                <div>
+                  <p className="text-sm font-light text-white/22 line-through">R$ 49,00</p>
+                  <p className="text-[3.8rem] font-black leading-none tracking-tight text-white sm:text-[4.5rem]">
+                    R$ 19<span className="text-[#ff8c00]">,99</span>
+                  </p>
+                </div>
+                <p className="mb-1 text-sm font-semibold uppercase tracking-wider text-[#ff8c00]">pagamento único</p>
+              </div>
+
+              <div className="mb-7 h-px w-full bg-gradient-to-r from-transparent via-[#ff8c00]/18 to-transparent" />
+
+              <ul className="mb-8 space-y-3">
+                {[
+                  'Acesso à biblioteca completa de figurinhas',
+                  'Packs organizados por categorias e nichos',
+                  'Copiar e colar direto no Instagram',
+                  'Atualizações frequentes incluídas',
+                  'Funciona no celular e no computador',
+                  'Acesso liberado automaticamente após o pagamento',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#ff8c00]" />
+                    <span className="text-sm font-light text-white/60">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="group relative">
+                <div className="pointer-events-none absolute -inset-2 rounded-2xl bg-gradient-to-r from-[#ff8c00] to-[#ff6b00] opacity-30 blur-xl transition-opacity group-hover:opacity-50" />
+                <Link
+                  href={CHECKOUT_URL}
+                  className="relative flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-b from-[#ff9d2e] to-[#ff6b00] py-5 text-center text-base font-black uppercase tracking-wide text-white shadow-[inset_0_2px_4px_rgba(255,255,255,0.28)]"
+                >
+                  Comprar acesso agora
+                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </motion.div>
+
+              <p className="mt-5 text-center text-xs font-light text-white/28">
+                Garantia de 7 dias · Se não curtir, devolvemos 100% do valor.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── 10. Garantia / Segurança ───────────────────────────────── */}
+      <section className="bg-[#080808] py-14 sm:py-18">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {(
+              [
+                { icon: Zap,          label: 'Acesso automático', text: 'Sem aprovação manual.' },
+                { icon: ShieldCheck,  label: 'Compra segura',     text: 'Pagamento protegido.' },
+                { icon: MessageCircle,label: 'Suporte disponível',text: 'Dúvidas? A gente responde.' },
+                { icon: Check,        label: 'Garantia de 7 dias',text: 'Reembolso sem perguntas.' },
+              ] as const
+            ).map(({ icon: Icon, label, text }) => (
+              <div key={label} className="flex items-start gap-3 rounded-xl border border-white/5 bg-[#0d0d0d] p-4">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#ff8c00]/[0.08]">
+                  <Icon className="h-4 w-4 text-[#ff8c00]" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">{label}</p>
+                  <p className="text-xs font-light text-white/30">{text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-8 text-center text-[10px] font-light leading-relaxed text-white/18">
+            Conteúdos relacionados a apostas e cassino disponíveis na plataforma devem ser utilizados exclusivamente por maiores de 18 anos e de forma responsável.
+          </p>
+        </div>
+      </section>
+
+      {/* ─── 11. FAQ ────────────────────────────────────────────────── */}
+      <section className="bg-[#060606] py-20 sm:py-28">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-10 text-center sm:mb-12">
+            <h2 className="text-3xl font-black tracking-tighter text-white sm:text-4xl">
+              Perguntas frequentes
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {faqs.map((faq, index) => (
+              <FaqAccordion
+                key={faq.q}
+                faq={faq}
+                isOpen={openFaq === index}
+                onToggle={() => setOpenFaq(openFaq === index ? null : index)}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 12. CTA Final ──────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#050505] py-20 sm:py-28">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[400px] w-full max-w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ff8c00]/[0.045] blur-[100px]" />
+
+        <div className="relative z-10 mx-auto max-w-3xl px-4 text-center sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="mb-4 text-3xl font-black tracking-tighter text-white sm:text-4xl md:text-5xl">
+              Pronto para criar stories
+              <br />
+              <span className="text-[#ff8c00]">que chamam atenção?</span>
+            </h2>
+            <p className="mx-auto mb-8 max-w-xl text-base font-light text-white/40 sm:text-lg">
+              Acesse agora e comece a usar figurinhas que transformam seus stories em chamadas impossíveis de ignorar.
+            </p>
+
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="group relative w-full sm:w-auto">
+                <div className="pointer-events-none absolute -inset-2 rounded-full bg-gradient-to-r from-[#ff8c00] to-[#ff6b00] opacity-25 blur-xl transition-opacity group-hover:opacity-45" />
+                <Link
+                  href={CHECKOUT_URL}
+                  className="relative flex items-center justify-center gap-3 rounded-full bg-gradient-to-b from-[#ff9d2e] to-[#ff6b00] px-8 py-4 text-sm font-black uppercase tracking-wide text-white shadow-[inset_0_2px_4px_rgba(255,255,255,0.28),0_16px_40px_rgba(0,0,0,0.4)] sm:py-5 sm:text-base"
+                >
+                  Começar agora por R$ 19,99
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </motion.div>
+
+              <Link
+                href={WHATSAPP_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-6 py-4 text-sm font-bold text-white/50 transition-all hover:border-white/16 hover:text-white/80 sm:w-auto"
+              >
+                <MessageCircle className="h-4 w-4" /> Falar no WhatsApp
+              </Link>
+            </div>
+
+            <p className="mt-5 text-xs font-light text-white/25">
+              Garantia de 7 dias · Acesso imediato · Pagamento único
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── Footer ─────────────────────────────────────────────────── */}
+      <footer className="border-t border-white/[0.04] bg-[#000] py-12 text-center">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-7 px-4">
+          <div className="flex items-center gap-2 opacity-40">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-white/15">
+              <ZIcon className="h-3 w-3 text-white" />
+            </div>
+            <span className="text-xl font-black tracking-tighter text-white">
+              Stikz<span className="text-[#ff8c00]">.</span>
+            </span>
+          </div>
+
+          <nav aria-label="Links do rodapé" className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase tracking-[0.25em] text-white/22">
+            <Link href="#" className="transition-colors hover:text-white/55">Privacidade</Link>
+            <Link href="#" className="transition-colors hover:text-white/55">Termos</Link>
+            <Link href="#" className="transition-colors hover:text-white/55">Suporte</Link>
+          </nav>
+
+          <p className="text-[10px] uppercase tracking-[0.3em] text-white/18">
+            Stikz &copy; {new Date().getFullYear()}
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
 }

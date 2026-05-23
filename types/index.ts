@@ -3,6 +3,12 @@ export interface Usuario {
   email: string;
   nome: string | null;
   whatsapp: string | null;
+  empresa_cnpj?: string | null;
+  empresa_razao_social?: string | null;
+  empresa_nome_fantasia?: string | null;
+  empresa_endereco?: string | null;
+  empresa_telefone?: string | null;
+  empresa_email?: string | null;
   data_criacao: string;
   data_expiracao: string | null;
   status: 'ativo' | 'inativo' | 'pendente';

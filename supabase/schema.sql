@@ -10,6 +10,12 @@ CREATE TABLE IF NOT EXISTS usuarios (
   senha_hash VARCHAR(255) NOT NULL,
   nome VARCHAR(255),
   whatsapp VARCHAR(20),
+  empresa_cnpj VARCHAR(18),
+  empresa_razao_social VARCHAR(255),
+  empresa_nome_fantasia VARCHAR(255),
+  empresa_endereco TEXT,
+  empresa_telefone VARCHAR(20),
+  empresa_email VARCHAR(255),
   data_criacao TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   data_expiracao TIMESTAMP WITH TIME ZONE,
   status VARCHAR(20) DEFAULT 'ativo' CHECK (status IN ('ativo', 'inativo', 'pendente')),
@@ -26,6 +32,14 @@ CREATE INDEX IF NOT EXISTS idx_usuarios_status ON usuarios(status);
 
 -- RLS (Row Level Security) - Desabilitar para uso com service role
 ALTER TABLE usuarios DISABLE ROW LEVEL SECURITY;
+
+-- Campos da empresa para configuracoes e uso em laudos
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS empresa_cnpj VARCHAR(18);
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS empresa_razao_social VARCHAR(255);
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS empresa_nome_fantasia VARCHAR(255);
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS empresa_endereco TEXT;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS empresa_telefone VARCHAR(20);
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS empresa_email VARCHAR(255);
 
 -- =============================================
 -- Inserir usuário admin inicial
