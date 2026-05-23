@@ -109,7 +109,6 @@ function PainelConteudo() {
         {/* === MOMENTO WOW: BANNER === */}
         <div className="mb-10 w-full rounded-3xl overflow-hidden relative shadow-[0_30px_60px_rgba(255,106,0,0.1),_inset_0_1px_1px_rgba(255,255,255,0.15)] group">
            <div className="absolute inset-0 bg-gradient-to-r from-[#1c0d03] to-[#0a0a0a]"></div>
-           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
            {/* Efeitos de Luz no Banner */}
            <div className="absolute top-0 right-0 w-96 h-96 bg-[#ff6a00]/30 blur-[100px] pointer-events-none group-hover:bg-[#ff6a00]/40 transition-colors duration-700"></div>
            
@@ -161,13 +160,12 @@ function PainelConteudo() {
         {/* Grid de categorias (PREMIUM) */}
         {!categoriasLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {categorias.map((cat, idx) => (
+            {categorias.map((cat) => (
               <button
                 type="button"
                 key={cat.slug}
                 onClick={() => router.push(`/painel?categoria=${cat.slug}`)}
                 className="group relative bg-[#111] overflow-hidden rounded-3xl border border-white/5 flex flex-col items-start gap-4 transition-all duration-500 hover:shadow-[0_40px_80px_rgba(0,0,0,0.8)] hover:-translate-y-2 cursor-pointer select-none text-left p-8"
-                style={{ animation: `fadeInUp 0.6s ease-out ${idx * 0.1}s both` }}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div 

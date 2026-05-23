@@ -297,3 +297,29 @@ input:-webkit-autofill:focus {
     box-shadow: 0 22px 48px rgba(0, 0, 0, 0.75), 0 0 34px rgba(255, 106, 0, 0.16);
   }
 }
+
+/* Smooth scroll global */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Parar todas animações para quem prefere menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .sticker-marquee-track {
+    will-change: auto;
+  }
+}
+
+/* Promover camadas animadas para GPU sem forçar will-change em tudo */
+.sticker-marquee-track,
+.sticker-tile {
+  transform: translateZ(0);
+}

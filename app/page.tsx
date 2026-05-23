@@ -252,14 +252,14 @@ function PhoneMockup() {
     <div className="relative mx-auto w-fit">
       {/* floating badges */}
       <motion.div
-        animate={{ y: [0, -10, 0], rotate: [-2, 2, -2] }}
+        animate={{ y: [0, -10, 0] }}
         transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }}
         className="absolute -left-12 top-14 z-20 hidden rounded-xl border border-[#ff8c00]/30 bg-black/80 px-3 py-2 text-[11px] font-black uppercase tracking-wide text-[#ff8c00] shadow-[0_0_18px_rgba(255,140,0,0.2)] backdrop-blur sm:block"
       >
         🔥 Trending
       </motion.div>
       <motion.div
-        animate={{ y: [0, 10, 0], rotate: [2, -2, 2] }}
+        animate={{ y: [0, 10, 0] }}
         transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
         className="absolute -right-10 top-28 z-20 hidden rounded-xl border border-white/10 bg-black/80 px-3 py-2 text-[11px] font-bold text-white/65 shadow-lg backdrop-blur sm:block"
       >
